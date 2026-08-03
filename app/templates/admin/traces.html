@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-traces"></div>
+
+<p class="path"><a href="/admin">Products</a> / Agent traces</p>
+
+<h1>Agent traces</h1>
+<p class="sub">
+  The node path the LangGraph workflow actually took for each recommendation,
+  including any refine iterations. Recorded locally, so the workflow stays
+  inspectable with or without LangSmith configured.
+</p>
+
+{% for rec in recs %}
+  <div class="panel" style="margin-bottom:16px">
+    <div class="toolbar" style="margin:0 0 10px">
+      <strong>{{ rec.headline or '(no headline)' }}</strong>
+      <span class="spacer"></span>
+      <span class="pill">{{ rec.user.email if rec.user else 'user ' ~ rec.user_id }}</span>
+      <span class="pill">{{ rec.generated_at | timeago }}</span>
+      {% if rec.is_current %}<span class="pill pill-good">current</span>{% endif %}
+      {% if rec.is_fallback %}<span class="pill pill-warn">fallback</span>{% endif %}
+    </div>
+
+    <p class="sub" style="margin:0 0 10px">{{ rec.narrative }}</p>
+
+    <p style="margin:0 0 10px">
+      <span class="pill">trigger: {{ rec.trigger_reason }}</span>
+      <span class="pill">model: {{ rec.model }}</span>
+      <span class="pill">signature: {{ rec.behavior_signature[:12] }}</span>
+      {% if rec.agent_trace and rec.agent_trace.refine_attempts %}
+        <span class="pill pill-warn">refined x{{ rec.agent_trace.refine_attempts }}</span>
+      {% endif %}
+      {% if rec.agent_trace and rec.agent_trace.retrieval_quality is defined %}
+        <span class="pill">retrieval q: {{ rec.agent_trace.retrieval_quality }}</span>
+      {% endif %}
+    </p>
+
+    {% if rec.agent_trace and rec.agent_trace.path %}
+      <p class="path"><code>{{ rec.agent_trace.path | join(' &rarr; ') | safe }}</code></p>
+    {% endif %}
+
+    <details class="why">
+      <summary>Full trace</summary>
+      {% if rec.agent_trace and rec.agent_trace.queries %}
+        <h3 style="margin-top:12px">Retrieval queries</h3>
+        <ul style="margin:0;padding-left:18px;color:var(--muted)">
+          {% for query in rec.agent_trace.queries %}<li>{{ query }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if rec.agent_trace and rec.agent_trace.inferred_goal %}
+        <h3 style="margin-top:12px">Inferred goal</h3>
+        <p style="margin:0;color:var(--muted)">{{ rec.agent_trace.inferred_goal }}</p>
+      {% endif %}
+
+      <h3 style="margin-top:12px">Nodes</h3>
+      <pre>{{ rec.agent_trace.get('nodes', []) | tojson(indent=2) }}</pre>
+    </details>
+  </div>
+{% else %}
+  <div class="panel empty">No recommendations generated yet.</div>
+{% endfor %}
+{% endblock %}

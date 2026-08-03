@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-ai-usage"></div>
+
+<p class="path"><a href="/admin">Products</a> / AI usage</p>
+
+<h1>AI usage</h1>
+<p class="sub">
+  Every Mesh call is recorded. Last 7 days.
+</p>
+
+<div class="stats">
+  <div class="stat"><div class="n">{{ totals[0] }}</div><div class="k">LLM calls</div></div>
+  <div class="stat"><div class="n">{{ event_count }}</div><div class="k">events tracked</div></div>
+  <div class="stat">
+    <div class="n">{{ events_per_call if events_per_call is not none else '-' }}</div>
+    <div class="k">events per LLM call</div>
+  </div>
+  <div class="stat"><div class="n">{{ rec_count }}</div><div class="k">recommendations</div></div>
+  <div class="stat">
+    <div class="n">{{ '{:,}'.format(totals[1] + totals[2]) }}</div>
+    <div class="k">tokens total</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Why this ratio matters</h3>
+  <p class="sub" style="margin:0">
+    The naive design calls the model on every tracked action, so this ratio
+    would sit near 1. Here it is much higher because generation runs behind four
+    gates (cooldown, momentum, behaviour-signature novelty, single-flight) and
+    an unchanged behaviour signature serves the cached recommendation for free.
+  </p>
+</div>
+
+<h2>By purpose</h2>
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr>
+        <th>Purpose</th><th class="num">Calls</th><th class="num">Prompt tok</th>
+        <th class="num">Completion tok</th><th class="num">Avg latency</th><th class="num">OK</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in by_purpose %}
+        <tr>
+          <td><code>{{ row[0] }}</code></td>
+          <td class="num">{{ row[1] }}</td>
+          <td class="num">{{ '{:,}'.format(row[2] or 0) }}</td>
+          <td class="num">{{ '{:,}'.format(row[3] or 0) }}</td>
+          <td class="num">{{ (row[4] or 0) | round | int }} ms</td>
+          <td class="num">{{ row[5] or 0 }}/{{ row[1] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No calls recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Event queue</h2>
+<div class="panel">
+  <p class="sub" style="margin:0">
+    Ingest returns 202 before any database work: events land on a bounded
+    in-memory queue and a background consumer writes them in batches.
+  </p>
+  <p style="margin:12px 0 0">
+    <span class="pill">received {{ queue.received }}</span>
+    <span class="pill">written {{ queue.written }}</span>
+    <span class="pill">duplicates ignored {{ queue.duplicates }}</span>
+    <span class="pill {% if queue.dropped %}pill-warn{% endif %}">dropped {{ queue.dropped }}</span>
+    <span class="pill">batches {{ queue.batches }}</span>
+    <span class="pill">queue depth {{ queue.queue_depth }}/{{ queue.queue_max }}</span>
+  </p>
+  <p class="sub" style="margin:10px 0 0">
+    Counters are per-process and reset on restart. Duplicates are expected: the
+    client retries failed flushes, and the client-generated event id makes a
+    repeat delivery a no-op.
+  </p>
+</div>
+
+<h2>Recent calls</h2>
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr>
+        <th>When</th><th>Purpose</th><th>Model</th>
+        <th class="num">Tokens</th><th class="num">Latency</th><th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for call in recent %}
+        <tr>
+          <td>{{ call.created_at | timeago }}</td>
+          <td><code>{{ call.purpose }}</code></td>
+          <td class="path">{{ call.model }}</td>
+          <td class="num">{{ call.prompt_tokens + call.completion_tokens }}</td>
+          <td class="num">{{ call.latency_ms }} ms</td>
+          <td>
+            {% if call.ok %}<span class="pill pill-good">ok</span>
+            {% else %}<span class="pill pill-bad" title="{{ call.error }}">failed</span>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No calls recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

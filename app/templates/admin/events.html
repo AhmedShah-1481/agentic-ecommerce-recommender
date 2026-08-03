@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-events"></div>
+
+<p class="path"><a href="/admin">Products</a> / Event feed</p>
+
+<h1>Event feed</h1>
+<p class="sub">
+  The behavioural signal the recommender reasons over. Written in batches by the
+  background consumer, never on the request path.
+</p>
+
+<div class="stats">
+  <div class="stat"><div class="n">{{ queue.received }}</div><div class="k">received (this process)</div></div>
+  <div class="stat"><div class="n">{{ queue.written }}</div><div class="k">written</div></div>
+  <div class="stat"><div class="n">{{ queue.batches }}</div><div class="k">batch writes</div></div>
+  <div class="stat">
+    <div class="n">{{ queue.queue_depth }}</div>
+    <div class="k">queued now (cap {{ queue.queue_max }})</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>By type</h3>
+  <p style="margin:0">
+    {% for event_type, count in by_type %}
+      <span class="pill">{{ event_type }}: {{ count }}</span>
+    {% endfor %}
+  </p>
+  <p class="sub" style="margin:12px 0 0">
+    Note the shape: far fewer <code>search</code> events than keystrokes typed
+    (debounced client-side) and at most four <code>scroll_depth</code> events per
+    page view (milestones, not a stream).
+  </p>
+</div>
+
+<h2>Most recent</h2>
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr>
+        <th>When</th><th>User</th><th>Type</th><th>Course</th>
+        <th>Query</th><th class="num">Dwell</th><th class="num">Scroll</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events %}
+        <tr>
+          <td>{{ event.server_ts | timeago }}</td>
+          <td class="path">{{ event.user.email if event.user else 'anonymous' }}</td>
+          <td><code>{{ event.event_type }}</code></td>
+          <td>
+            {% if event.product %}
+              <a href="/product/{{ event.product.id }}">{{ event.product.title[:38] }}</a>
+            {% else %}&mdash;{% endif %}
+          </td>
+          <td class="path">{{ event.search_query or '' }}</td>
+          <td class="num">{{ (event.dwell_ms / 1000) | round(1) if event.dwell_ms else '' }}</td>
+          <td class="num">{{ event.scroll_pct or '' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="empty">No events recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

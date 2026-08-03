@@ -1,0 +1,55 @@
+{# Base layout. Loads the tracker on every page - failure there must never
+   affect rendering, so it is deferred and self-contained. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block page_title %}{{ title or 'Courses' }} &middot; {{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">{{ app_name }}</a>
+    <nav class="nav">
+      <a href="/">Browse</a>
+      {% if user %}
+        <a href="/dashboard">For you</a>
+        <a href="/inbox">Inbox</a>
+        {% if user.is_admin %}
+          <a href="/admin">Admin</a>
+        {% endif %}
+        <span class="who">{{ user.name or user.email }}</span>
+        <form method="post" action="/logout" class="inline">
+          <button class="link-btn" type="submit">Sign out</button>
+        </form>
+      {% else %}
+        <a href="/login">Sign in</a>
+        <a class="btn btn-sm" href="/register">Create account</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>{{ app_name }} &mdash; agentic course recommendations</span>
+  </div>
+</footer>
+
+{# Tracker config is rendered server-side so the client never guesses identity. #}
+<script>
+  window.LL_CONFIG = {
+    userId: {{ user.id if user else 'null' }},
+    path: {{ request.url.path | tojson }}
+  };
+</script>
+<script src="/static/js/tracker.js" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

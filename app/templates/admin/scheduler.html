@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-scheduler"></div>
+
+<p class="path"><a href="/admin">Products</a> / Scheduler</p>
+
+<h1>Scheduler</h1>
+<p class="sub">
+  APScheduler runs inside the app's event loop, started and stopped by the
+  FastAPI lifespan. Nothing here needs a human to press anything &mdash; the
+  button below exists only so the daily job can be demonstrated without waiting
+  for the clock.
+</p>
+
+{% if result %}
+  <div class="panel"><strong>Last manual run:</strong> {{ result }}</div>
+{% endif %}
+
+<div class="panel">
+  <p style="margin:0">
+    {% if running %}
+      <span class="pill pill-good">running</span>
+    {% else %}
+      <span class="pill pill-warn">not running</span>
+      <span class="sub">set <code>SCHEDULER_ENABLED=true</code> and restart</span>
+    {% endif %}
+    <span class="pill">email backend: {{ backend }}</span>
+  </p>
+</div>
+
+<h2>Jobs</h2>
+<div class="panel" style="padding:0">
+  <table>
+    <thead><tr><th>Job</th><th>Trigger</th><th>Next run (UTC)</th></tr></thead>
+    <tbody>
+      {% for job in jobs %}
+        <tr>
+          <td><code>{{ job.id }}</code></td>
+          <td class="path">{{ job.trigger }}</td>
+          <td>{{ job.next_run.strftime('%Y-%m-%d %H:%M') if job.next_run else '&mdash;' | safe }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3" class="empty">No jobs registered.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h3>Run the digest job now</h3>
+  <p class="sub">
+    Same function the cron trigger calls. Each user with at least three events in
+    the last 24h gets one digest; the row is claimed in <code>digest_log</code>
+    before the email is built, so pressing this twice sends once.
+  </p>
+  <form method="post" action="/admin/scheduler/run-digests">
+    <button class="btn" type="submit">Run digests</button>
+  </form>
+</div>
+
+<h2>Delivery log</h2>
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr><th>Date</th><th>User</th><th>Status</th><th>Rec</th><th>Detail</th></tr>
+    </thead>
+    <tbody>
+      {% for row in log %}
+        <tr>
+          <td>{{ row.digest_date }}</td>
+          <td class="path">{{ row.user.email if row.user else 'user ' ~ row.user_id }}</td>
+          <td>
+            {% if row.status == 'sent' %}<span class="pill pill-good">sent</span>
+            {% elif row.status == 'failed' %}<span class="pill pill-bad">failed</span>
+            {% else %}<span class="pill pill-warn">{{ row.status }}</span>{% endif %}
+          </td>
+          <td class="num">{{ row.rec_id or '' }}</td>
+          <td class="path">{{ row.detail[:70] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="empty">No digest runs recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

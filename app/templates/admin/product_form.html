@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-product-form"></div>
+
+<p class="path"><a href="/admin">Products</a> / {{ 'Edit' if product else 'New' }}</p>
+
+{% if created %}
+  <div class="alert alert-good">
+    Course created and dual-written to the vector store.
+  </div>
+{% endif %}
+
+<div class="panel">
+  <h1>{{ 'Edit course' if product else 'New course' }}</h1>
+  {% if product %}
+    <p class="sub">
+      Vector state:
+      {% if product.vector_state == 'synced' %}
+        <span class="pill pill-good">synced</span> {{ product.vector_synced_at | timeago }}
+      {% elif product.vector_state == 'failed' %}
+        <span class="pill pill-bad">failed</span> &mdash; {{ product.vector_error }}
+      {% else %}
+        <span class="pill pill-warn">{{ product.vector_state }}</span>
+      {% endif %}
+      <br>
+      <small>
+        Editing only price or rating leaves the embedded text unchanged, so the
+        content hash matches and no re-embedding happens.
+      </small>
+    </p>
+  {% endif %}
+
+  <form method="post"
+        action="{{ '/admin/products/' ~ product.id if product else '/admin/products/new' }}">
+    <div class="field">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" required
+             value="{{ product.title if product else '' }}">
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="5">{{ product.description if product else '' }}</textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="category">Category</label>
+        <input type="text" id="category" name="category"
+               value="{{ product.category if product else '' }}">
+      </div>
+      <div class="field">
+        <label for="subcategory">Subcategory</label>
+        <input type="text" id="subcategory" name="subcategory"
+               value="{{ product.subcategory if product else '' }}">
+      </div>
+      <div class="field">
+        <label for="level">Level</label>
+        <select id="level" name="level">
+          {% for l in levels %}
+            <option value="{{ l }}"
+              {% if product and product.level == l %}selected{% endif %}>{{ l|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="price">Price</label>
+        <input type="number" step="0.01" min="0" id="price" name="price"
+               value="{{ product.price if product else 0 }}">
+      </div>
+      <div class="field">
+        <label for="duration_hours">Duration (hours)</label>
+        <input type="number" step="0.5" min="0" id="duration_hours" name="duration_hours"
+               value="{{ product.duration_hours if product else 0 }}">
+      </div>
+      <div class="field">
+        <label for="rating">Rating (0-5)</label>
+        <input type="number" step="0.1" min="0" max="5" id="rating" name="rating"
+               value="{{ product.rating if product else 0 }}">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="instructor">Instructor</label>
+      <input type="text" id="instructor" name="instructor"
+             value="{{ product.instructor if product else '' }}">
+    </div>
+
+    <div class="field">
+      <label for="tags">Tags (comma separated)</label>
+      <input type="text" id="tags" name="tags"
+             value="{{ product.tags | join(', ') if product else '' }}">
+    </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" name="is_published" style="width:auto"
+               {% if not product or product.is_published %}checked{% endif %}>
+        Published
+      </label>
+    </div>
+
+    <button class="btn" type="submit">{{ 'Save changes' if product else 'Create course' }}</button>
+    <a class="btn btn-ghost" href="/admin">Cancel</a>
+  </form>
+</div>
+{% endblock %}

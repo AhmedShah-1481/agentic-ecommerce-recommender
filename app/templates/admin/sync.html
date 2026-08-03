@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-sync"></div>
+
+<p class="path"><a href="/admin">Products</a> / Vector sync</p>
+
+<h1>Dual-write state</h1>
+<p class="sub">
+  Every product is written to SQL and to the vector store. This page compares
+  the two sides directly rather than assuming they agree.
+</p>
+
+{% if report %}
+  <div class="alert alert-good">
+    Reconciled: checked {{ report.checked }}, repaired {{ report.repaired }},
+    re-embedded {{ report.reembedded }}, orphan vectors deleted
+    {{ report.orphans_deleted }}, still failing {{ report.still_failing }}.
+  </div>
+{% endif %}
+
+<div class="stats">
+  <div class="stat"><div class="n">{{ status.sql_count }}</div><div class="k">SQL rows</div></div>
+  <div class="stat"><div class="n">{{ status.vector_count }}</div><div class="k">vectors</div></div>
+  <div class="stat">
+    <div class="n">
+      {% if status.in_sync %}<span style="color:var(--good)">yes</span>
+      {% else %}<span style="color:var(--bad)">no</span>{% endif %}
+    </div>
+    <div class="k">in sync</div>
+  </div>
+  <div class="stat">
+    <div class="n" style="font-size:14px;line-height:1.5">
+      {{ status.vector_providers | join(', ') or 'none' }}
+    </div>
+    <div class="k">embedding provider in vectors</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Vector state by row</h3>
+  <p>
+    {% for state, count in status.by_state.items() %}
+      <span class="pill {% if state == 'synced' %}pill-good{% elif state == 'failed' %}pill-bad{% else %}pill-warn{% endif %}">
+        {{ state }}: {{ count }}
+      </span>
+    {% endfor %}
+  </p>
+
+  {% if status.missing_in_vector %}
+    <h3 style="margin-top:16px">Missing from the vector store</h3>
+    <p class="path">{{ status.missing_in_vector | join(', ') }}</p>
+  {% endif %}
+
+  {% if status.orphan_vectors %}
+    <h3 style="margin-top:16px">Orphan vectors (no SQL row)</h3>
+    <p class="path">{{ status.orphan_vectors | join(', ') }}</p>
+  {% endif %}
+
+  <h3 style="margin-top:16px">Embedding provider</h3>
+  <p class="path">
+    Configured: <code>{{ status.configured_provider }}</code><br>
+    Stored in vectors: <code>{{ status.vector_providers | join(', ') or 'none' }}</code>
+    {% if status.using_fallback %}
+      <br><span class="pill pill-warn">local fallback active</span>
+      Mesh embeddings are unavailable, so a deterministic local embedder is in
+      use. Retrieval still works; restoring Mesh access needs no code change,
+      because reconcile detects the provider change and re-embeds.
+    {% endif %}
+  </p>
+
+  <form method="post" action="/admin/sync/reconcile" style="margin-top:18px">
+    <button class="btn" type="submit">Reconcile now</button>
+    <label style="display:inline;margin-left:12px;color:var(--muted)">
+      <input type="checkbox" name="force" value="1" style="width:auto">
+      Force re-embed everything
+    </label>
+  </form>
+  <p class="sub" style="margin-top:10px">
+    Reconcile also runs on startup and every few minutes via the scheduler, so
+    drift is repaired without anyone pressing this button.
+  </p>
+</div>
+{% endblock %}

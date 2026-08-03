@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="inbox"></div>
+
+<h1>Inbox</h1>
+<p class="sub">
+  Digests the scheduler sent you. Delivery backend: <code>{{ backend }}</code>.
+  {% if backend == 'outbox' %}
+    Nothing is actually mailed in dev &mdash; the same rendered HTML is written
+    to <code>outbox/</code> and shown here, so the feature works on a fresh clone
+    with no SMTP credentials. Set <code>EMAIL_BACKEND=smtp</code> to send for real.
+  {% endif %}
+</p>
+
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr><th>Sent</th><th>Subject</th><th class="num">Size</th></tr>
+    </thead>
+    <tbody>
+      {% for message in messages %}
+        <tr>
+          <td>{{ message.sent_at | timeago }}</td>
+          <td><a href="/inbox/{{ message.name }}">{{ message.subject }}</a></td>
+          <td class="num">{{ (message.size / 1024) | round(1) }} KB</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="3" class="empty">
+            No digests yet. The scheduler runs daily; browse a few courses first
+            so there is behaviour to write about.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Delivery log</h2>
+<p class="sub">
+  One row per user per day &mdash; a unique <code>(user_id, digest_date)</code>
+  constraint is what makes a repeated scheduler run a no-op instead of a second email.
+</p>
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Status</th><th>Detail</th></tr>
+    </thead>
+    <tbody>
+      {% for row in history %}
+        <tr>
+          <td>{{ row.digest_date }}</td>
+          <td>
+            {% if row.status == 'sent' %}<span class="pill pill-good">sent</span>
+            {% elif row.status == 'failed' %}<span class="pill pill-bad">failed</span>
+            {% else %}<span class="pill pill-warn">{{ row.status }}</span>{% endif %}
+          </td>
+          <td class="path">{{ row.detail[:90] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3" class="empty">No digest runs recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

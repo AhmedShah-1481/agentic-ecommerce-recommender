@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="dashboard"></div>
+
+<h1>Recommended for you</h1>
+<p class="sub">
+  Built from what you have actually browsed, searched and lingered on.
+</p>
+
+{% if rec %}
+  <section class="rec">
+    <h1>{{ rec.headline }}</h1>
+    <p class="narrative">{{ rec.narrative }}</p>
+
+    {% for item in rec.items %}
+      {% if item.product %}
+        <div class="rec-item">
+          <div class="rec-rank">{{ item.rank }}</div>
+          <div>
+            <h3>
+              <a href="/product/{{ item.product.id }}"
+                 data-ll-track-click="product_click"
+                 data-ll-product-id="{{ item.product.id }}"
+                 data-ll-label="{{ item.product.title }}">{{ item.product.title }}</a>
+            </h3>
+            <div class="meta">
+              {{ item.product.category }} &middot; {{ item.product.level }}
+              &middot; {{ item.product.price | money }}
+            </div>
+            {% if item.reason %}<div class="rec-reason">{{ item.reason }}</div>{% endif %}
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {# Makes the personalisation legible instead of asking for trust. #}
+    <details class="why">
+      <summary>Why am I seeing this?</summary>
+      <p style="margin:10px 0 0">
+        {% if rec.detected_interests %}
+          Detected interests:
+          {% for interest in rec.detected_interests %}<span class="tag">{{ interest }}</span>{% endfor %}
+        {% endif %}
+      </p>
+      <p style="margin:8px 0 0">
+        Generated {{ rec.generated_at | timeago }} &middot;
+        trigger: <code>{{ rec.trigger_reason }}</code> &middot;
+        model: <code>{{ rec.model }}</code>
+        {%- if rec.is_fallback %} &middot; <span class="pill pill-warn">fallback copy</span>{% endif %}
+      </p>
+      <p style="margin:8px 0 0">
+        Recommendations refresh in the background when your behaviour changes
+        enough to change the answer, so this page never waits on the model.
+      </p>
+    </details>
+  </section>
+
+  <form method="post" action="/api/recommendations/refresh" id="refresh-form">
+    <button class="btn btn-ghost btn-sm" type="submit">Check for an update</button>
+  </form>
+{% else %}
+  <div class="panel empty">
+    <p><strong>Nothing here yet.</strong></p>
+    <p>Browse a few courses and search for what interests you. Once there is
+       enough signal to personalise, recommendations appear here automatically.</p>
+    <a class="btn" href="/">Browse courses</a>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Progressive enhancement: post via fetch so the page isn't replaced by JSON.
+  // Without JS the form still works, it just navigates.
+  (function () {
+    var form = document.getElementById("refresh-form");
+    if (!form) return;
+    form.addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      var btn = form.querySelector("button");
+      btn.disabled = true;
+      btn.textContent = "Checking...";
+      fetch("/api/recommendations/refresh", { method: "POST", credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          // Generation runs in the background; reload only when one was queued.
+          if (data.queued) {
+            btn.textContent = "Refreshing in background...";
+            setTimeout(function () { location.reload(); }, 6000);
+          } else {
+            btn.disabled = false;
+            btn.textContent = "Up to date (" + data.decision + ")";
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = "Check for an update";
+        });
+    });
+  })();
+</script>
+{% endblock %}

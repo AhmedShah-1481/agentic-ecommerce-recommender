@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-ll-page="admin-products"></div>
+
+<div class="toolbar">
+  <h1 style="margin:0">Products</h1>
+  <span class="spacer"></span>
+  <a class="btn btn-sm btn-ghost" href="/admin/sync">Vector sync</a>
+  <a class="btn btn-sm btn-ghost" href="/admin/ai-usage">AI usage</a>
+  <a class="btn btn-sm btn-ghost" href="/admin/traces">Traces</a>
+  <a class="btn btn-sm btn-ghost" href="/admin/events">Events</a>
+  <a class="btn btn-sm" href="/admin/products/new">New course</a>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="n">{{ status.sql_count }}</div><div class="k">rows in SQL</div></div>
+  <div class="stat"><div class="n">{{ status.vector_count }}</div><div class="k">vectors stored</div></div>
+  <div class="stat">
+    <div class="n">
+      {% if status.in_sync %}<span style="color:var(--good)">in sync</span>
+      {% else %}<span style="color:var(--bad)">drift</span>{% endif %}
+    </div>
+    <div class="k">dual-write state</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="/admin">
+    <input type="text" name="q" value="{{ q }}" placeholder="Filter by title...">
+    <button class="btn btn-sm" type="submit">Filter</button>
+  </form>
+</div>
+
+<div class="panel" style="padding:0">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th><th>Category</th><th>Level</th>
+        <th class="num">Price</th><th>Vector</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+        <tr>
+          <td><a href="/admin/products/{{ p.id }}">{{ p.title }}</a></td>
+          <td>{{ p.category }}</td>
+          <td>{{ p.level }}</td>
+          <td class="num">{{ p.price | money }}</td>
+          <td>
+            {% if p.vector_state == 'synced' %}
+              <span class="pill pill-good">synced</span>
+            {% elif p.vector_state == 'failed' %}
+              <span class="pill pill-bad" title="{{ p.vector_error }}">failed</span>
+            {% else %}
+              <span class="pill pill-warn">{{ p.vector_state }}</span>
+            {% endif %}
+          </td>
+          <td class="num">
+            <form method="post" action="/admin/products/{{ p.id }}/delete" class="inline"
+                  onsubmit="return confirm('Delete this course? It is removed from SQL and the vector store.')">
+              <button class="link-btn" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No products.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

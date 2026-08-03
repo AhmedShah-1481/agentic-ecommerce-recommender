@@ -1,0 +1,24 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+venv/
+.venv/
+
+# ---- Secrets (never commit) ----
+.env
+
+# ---- Runtime data ----
+data/
+outbox/
+*.db
+*.db-wal
+*.db-shm
+chroma/
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
