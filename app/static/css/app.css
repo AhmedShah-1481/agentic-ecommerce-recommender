@@ -199,3 +199,114 @@ pre {
 .path { color: var(--muted); font-size: 12.5px; word-break: break-word; }
 .empty { color: var(--muted); text-align: center; padding: 40px 0; }
 .auth-card { max-width: 380px; margin: 40px auto; }
+
+/* ------------------------------------------------------------------ cart */
+/* Presentation only - there is no cart table. The badge exists so the
+   highest-weighted behavioural event has visible feedback. */
+.cart-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--accent-soft); color: #b9c7ff;
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 12.5px; font-variant-numeric: tabular-nums;
+}
+.cart-chip[hidden] { display: none; }
+.cart-ico { font-size: 12px; }
+.cart-chip.bump { animation: cart-bump .32s ease; }
+@keyframes cart-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* ----------------------------------------------------------------- toast */
+.toast-wrap {
+  position: fixed; right: 18px; bottom: 18px; z-index: 50;
+  display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--good);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; color: var(--ink);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .22s ease, transform .22s ease;
+  max-width: 320px;
+}
+.toast.in { opacity: 1; transform: translateY(0); }
+
+/* ------------------------------------------------- "Your Signal" panel */
+.signal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 22px;
+}
+.signal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.signal-live {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12.5px; color: var(--ink); letter-spacing: .02em;
+}
+.signal-live .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--good); flex: none;
+  box-shadow: 0 0 0 0 rgba(63, 185, 80, .55);
+  animation: signal-pulse 2s ease-out infinite;
+}
+@keyframes signal-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(63, 185, 80, .55); }
+  70%  { box-shadow: 0 0 0 7px rgba(63, 185, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0); }
+}
+.signal-note { color: var(--muted); font-size: 12px; }
+
+.signal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 11px;
+  font-size: 12.5px; max-width: 100%;
+}
+.chip-verb { color: var(--accent); font-weight: 600; font-size: 11.5px; }
+.chip-detail {
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px;
+}
+.chip-when { color: var(--muted); font-size: 11px; }
+/* Mirrors profile.py: add_to_cart and a long dwell both set high_signal. */
+.chip-strong { border-color: rgba(63, 185, 80, .45); background: rgba(63, 185, 80, .10); }
+.chip-strong .chip-verb { color: var(--good); }
+.chip-empty { color: var(--muted); }
+
+.signal-foot { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+
+/* --------------------------------------------- narrative as a callout */
+.rec .narrative {
+  position: relative;
+  font-size: 15.5px; color: #dfe4f0;
+  margin: 12px 0 20px;
+  padding: 14px 18px 14px 40px;
+  background: rgba(108, 140, 255, .08);
+  border: 1px solid rgba(108, 140, 255, .22);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  line-height: 1.55;
+}
+.rec .narrative::before {
+  content: "\201C";
+  position: absolute; left: 12px; top: 4px;
+  font-size: 30px; line-height: 1; color: var(--accent); opacity: .55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-live .dot, .cart-chip.bump { animation: none; }
+  .toast { transition: none; }
+}

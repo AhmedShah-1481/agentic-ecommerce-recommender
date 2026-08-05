@@ -23,13 +23,22 @@
 
   <div class="foot" style="display:flex;align-items:center;gap:16px">
     <span class="price" style="font-size:20px">{{ product.price | money }}</span>
+    {# Named for the event it fires. add_to_cart is the heaviest signal the
+       profile scores (6.0) and it sets high_signal, so this one click can
+       unblock a regeneration on its own. No cart table stands behind it. #}
     <button class="btn"
             data-ll-track-click="add_to_cart"
             data-ll-product-id="{{ product.id }}"
-            data-ll-label="{{ product.title }}">Enroll now</button>
+            data-ll-label="{{ product.title }}">Add to Cart</button>
     <span class="meta">Taught by {{ product.instructor or 'the LearnLoop team' }}</span>
   </div>
 </div>
+
+{% if user %}
+  {# Shows the click you just made land in the pipeline, on the page that
+     produced it. Hidden for anonymous visitors - no per-user history. #}
+  {% include "_signal.html" %}
+{% endif %}
 
 {% if related %}
   <h2>Related courses</h2>

@@ -4,8 +4,9 @@ Working notes for picking this up cold. Read [README.md](README.md) for what the
 project *is*; this file is about where it stands, what's still open, and why
 things were built the way they were.
 
-**Status: complete and committed. All requirements plus all four bonuses.
-45 tests passing. Deadline: 11 Aug.**
+**Status: complete. All requirements plus all four bonuses. 67 tests passing.
+Deadline: 11 Aug.** The "Your Signal" panel, the Add-to-Cart button and facet
+tracking are implemented and tested but **not yet committed** — see §2(b).
 
 ---
 
@@ -60,6 +61,28 @@ Every item below was checked by running it, not by reading the code.
   queued.
 - **Verified:** `POST /api/events` 202, events land in the DB via the consumer,
   per-type counts visible at `/admin/events`.
+- Catalog **facet selections are tracked** (`category` / `level`). This was a
+  real blind spot found by browsing the running app: choosing a category
+  navigates, and `tracker.js` classifies that as a bare `page_view` — which is
+  excluded from `MEANINGFUL_TYPES`, carries no `product_id`, and the facet name
+  only ever exists in the query string, which the tracker never reads. Filtering
+  through seven categories therefore produced **zero** signal.
+  Fixed in [app/static/js/ui.js](app/static/js/ui.js) `trackFilter()`: the facet
+  is emitted as a `search` event with `meta.source = "filter"`, through the
+  public `window.LLTrack.track` hook. Reusing `search` rather than adding an
+  event type means it inherits weight 3.0, `MEANINGFUL_TYPES` membership, and
+  `recent_searches` — which the agent turns into retrieval queries
+  ([nodes.py:79](app/agent/nodes.py#L79)) — with no change to ingest, scoring or
+  the agent. `meta.source` is what lets the "Your Signal" panel label it
+  *Filtered* rather than claiming the user typed a query. A `sessionStorage`
+  guard suppresses an identical facet within 30s so a reload or a pagination
+  click can't inflate `events_since_last_rec`.
+  **Known bound:** `has_signal()` requires a non-empty `category_affinity`, and
+  only events carrying a `product_id` populate that. So filtering alone still
+  won't cold-start a *first* recommendation — one course must be opened.
+  Filtering does move momentum, `high_signal`, tag affinity and retrieval.
+  Pinned by `test_a_facet_survives_the_real_ingest_path` (through the real
+  `_write_batch`) and `test_filtering_alone_still_cannot_cold_start`.
 
 ### The agent
 - LangGraph `StateGraph` in [app/agent/graph.py](app/agent/graph.py):
@@ -97,6 +120,16 @@ Every item below was checked by running it, not by reading the code.
   garbage-collected mid-await.
 - `/admin/ai-usage` reports calls by purpose, tokens, latency, and the headline
   **events-per-LLM-call** ratio.
+- **Gate order matters, and it surprises people demoing it.** Cooldown is checked
+  *before* momentum and novelty ([triggers.py:97-102](app/services/triggers.py#L97-L102)),
+  so once a recommendation exists nothing regenerates for 10 minutes — not even
+  an `add_to_cart`, because `high_signal` is only consulted later at line 115.
+  That is deliberate (it is the spend ceiling), but it means the honest answer to
+  "how fast does it react?" is: **10 min cooldown + 2 meaningful events + ~40s of
+  generation**, and during the window `/api/recommendations/refresh` returns
+  `queued: false` with the dashboard button reading *"Up to date (cooldown)"*.
+  For a live demo set `REC_COOLDOWN_MINUTES=1` in `.env` (annotated in
+  `.env.example`) and restart; the committed default stays 10.
 
 ### Bonus 1 — LangGraph
 The workflow above, including the genuine cold-start branch and the bounded
@@ -137,12 +170,13 @@ scoring, multiplicative reranking, per-category cap (`MAX_PER_CATEGORY = 2`),
 below-band filler capped at `MIN_SLATE = 2` so a weak pool doesn't pad the slate
 with irrelevance.
 
-### Tests — 45 passing, no network required
+### Tests — 67 passing, no network required
 ```
 tests/test_rerank.py      7   reranker weighting properties
-tests/test_profile.py    11   decay maths + signature stability
+tests/test_profile.py    14   decay maths + signature stability + facet intent
 tests/test_triggers.py   17   the four gates, lease contention, force semantics
 tests/test_grounding.py  10   hallucinated ids and titles
+tests/test_signal.py     19   feed wording, cross-user isolation, limit clamp
 ```
 
 ### Git
@@ -188,6 +222,16 @@ provider-stale and re-embedded the whole catalog every time. Don't remove it.
 
 ### (b) Everything else not yet closed
 
+- **The repository is private.** `git push` works (authenticated), but the repo
+  page, the raw NOTES.md blob and the GitHub API all return **404 anonymously**,
+  so a reviewer cannot open it. Submission needs it public:
+  `Settings → Danger Zone → Change repository visibility → Public`. `gh` is not
+  installed locally, so this has to be done in the browser.
+- **Two features are on disk but uncommitted:** the "Your Signal" panel +
+  Add-to-Cart labelling/badge/toast, and facet tracking. 67 tests pass and both
+  were checked against a running app. `git status` shows 11 modified and 4 new
+  files (`app/services/signal.py`, `app/static/js/ui.js`,
+  `app/templates/_signal.html`, `tests/test_signal.py`).
 - **LangSmith is wired but never run against a live account.** The code path is
   exercised in the off state (which is the default and degrades silently). If a
   key gets added, check that spans actually arrive and that nothing in the

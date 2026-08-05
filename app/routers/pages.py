@@ -13,6 +13,7 @@ from app.models import DigestLog, Product, Recommendation, RecommendationItem, U
 from app.security import current_user, optional_user
 from app.services import mailer
 from app.services import recommendations as rec_service
+from app.services import signal as signal_service
 from app.templating import templates
 
 router = APIRouter(tags=["pages"])
@@ -112,7 +113,15 @@ async def product_detail(
     return templates.TemplateResponse(
         request,
         "product.html",
-        {"title": product.title, "user": user, "product": product, "related": related},
+        {
+            "title": product.title,
+            "user": user,
+            "product": product,
+            "related": related,
+            # Signed-in only: an anonymous visitor has no per-user history to
+            # show, and `signal` being falsy hides the panel in the template.
+            "signal": signal_service.recent(db, user.id) if user else [],
+        },
     )
 
 
@@ -142,7 +151,15 @@ async def dashboard(
     return templates.TemplateResponse(
         request,
         "dashboard.html",
-        {"title": "Your dashboard", "user": user, "rec": rec},
+        {
+            "title": "Your dashboard",
+            "user": user,
+            "rec": rec,
+            # Read-only view of this user's own events. Rendered here so the
+            # panel is populated on first paint; ui.js then polls to keep it
+            # current without a reload.
+            "signal": signal_service.recent(db, user.id),
+        },
     )
 
 

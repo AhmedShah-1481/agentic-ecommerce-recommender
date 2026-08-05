@@ -183,6 +183,53 @@ def test_searches_contribute_intent_without_a_product(seeded):
     assert "langgraph" in snapshot.tag_affinity
 
 
+def test_a_category_filter_counts_as_intent(seeded):
+    """Selecting a category used to be invisible: the navigation produced a
+    page_view, which carries no product and is excluded from the meaningful
+    types, so the facet reached neither the profile nor the momentum gate. It is
+    now emitted as a `search`, which lands here."""
+    seeded.add(_event("f1", "search", search_query="Web Development"))
+    seeded.commit()
+
+    snapshot = profile_service.build_snapshot(seeded, 1)
+
+    assert snapshot.total_events == 1
+    assert snapshot.recent_searches == ["Web Development"]
+    # Tokens >2 chars reach tag affinity, so the facet steers retrieval.
+    assert "web" in snapshot.tag_affinity
+    assert "development" in snapshot.tag_affinity
+
+
+def test_two_distinct_filters_set_high_signal(seeded):
+    """Two facets in one session is the repeat-intent path in profile.py, and
+    it is what lets a browsing burst clear the momentum gate on 2 events."""
+    seeded.add(_event("f1", "search", search_query="Web Development"))
+    seeded.add(_event("f2", "search", search_query="Security", hours_ago=0.1))
+    seeded.commit()
+
+    assert profile_service.build_snapshot(seeded, 1).high_signal is True
+
+
+def test_filtering_alone_still_cannot_cold_start(seeded):
+    """Honest bound on the fix: has_signal() requires category_affinity, which
+    only events carrying a product_id populate. Filtering moves momentum and
+    retrieval, but a first recommendation still needs a course to be opened."""
+    seeded.add(_event("f1", "search", search_query="Web Development"))
+    seeded.add(_event("f2", "search", search_query="Security", hours_ago=0.1))
+    seeded.add(_event("f3", "search", search_query="Design", hours_ago=0.2))
+    seeded.commit()
+
+    snapshot = profile_service.build_snapshot(seeded, 1)
+
+    assert snapshot.total_events == 3
+    assert snapshot.has_signal(3) is False  # no category affinity yet
+
+    seeded.add(_event("v", "product_view", product_id=1, hours_ago=0.3))
+    seeded.commit()
+
+    assert profile_service.build_snapshot(seeded, 1).has_signal(3) is True
+
+
 def test_prompt_dict_stays_small(seeded):
     """The snapshot is the agent's entire view of the user; it has to stay a
     summary, not a transcript, or the prompt cost scales with browsing."""

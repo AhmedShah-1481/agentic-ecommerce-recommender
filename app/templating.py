@@ -15,7 +15,12 @@ from app.config import settings
 templates = Jinja2Templates(directory=str(settings.resolve("app/templates")))
 
 
-def _timeago(value: datetime | None) -> str:
+def timeago(value: datetime | None) -> str:
+    """Relative time, e.g. "3m ago".
+
+    Public because the signal feed serialises the same wording into JSON, and
+    two implementations would drift.
+    """
     if not value:
         return "never"
     now = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -36,6 +41,6 @@ def _money(value: float | None) -> str:
     return "Free" if not value else f"${value:,.0f}"
 
 
-templates.env.filters["timeago"] = _timeago
+templates.env.filters["timeago"] = timeago
 templates.env.filters["money"] = _money
 templates.env.globals["app_name"] = settings.app_name

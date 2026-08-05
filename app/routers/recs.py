@@ -14,6 +14,7 @@ from app.models import Product, User
 from app.security import current_user
 from app.services import profile as profile_service
 from app.services import recommendations as rec_service
+from app.services import signal as signal_service
 from app.services import triggers
 
 router = APIRouter(prefix="/api", tags=["recommendations"])
@@ -61,6 +62,25 @@ async def get_recommendations(
     if rec is None:
         return {"status": "pending", "recommendation": None}
     return {"status": "ok", "recommendation": _serialise(rec, db)}
+
+
+@router.get("/me/signal")
+async def my_signal(
+    limit: int = signal_service.DEFAULT_LIMIT,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """The signed-in user's own recent tracked events.
+
+    Scoped to `user.id` from the session cookie and never to a client-supplied
+    id: this is behavioural history, so one account must not be able to read
+    another's. Read-only - it observes the events table, it does not write to
+    it, and it deliberately does not touch the profile or the trigger gates.
+
+    Powers the "Your Signal" panel, which polls it so the tracking pipeline is
+    visible while you browse instead of only implied by a recommendation.
+    """
+    return {"events": signal_service.recent(db, user.id, limit)}
 
 
 @router.post("/recommendations/refresh")

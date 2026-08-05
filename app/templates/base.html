@@ -14,6 +14,11 @@
     <a class="brand" href="/">{{ app_name }}</a>
     <nav class="nav">
       <a href="/">Browse</a>
+      {# Presentation-only counter. There is no cart table behind it - the click
+         it reflects is tracked as add_to_cart, which is the point. #}
+      <span class="cart-chip" id="cart-chip" aria-live="polite" hidden>
+        <span class="cart-ico" aria-hidden="true">&#128722;</span><span id="cart-count">0</span>
+      </span>
       {% if user %}
         <a href="/dashboard">For you</a>
         <a href="/inbox">Inbox</a>
@@ -42,6 +47,8 @@
   </div>
 </footer>
 
+<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
 {# Tracker config is rendered server-side so the client never guesses identity. #}
 <script>
   window.LL_CONFIG = {
@@ -50,6 +57,8 @@
   };
 </script>
 <script src="/static/js/tracker.js" defer></script>
+{# Loaded after the tracker so window.LLTrack exists; purely presentational. #}
+<script src="/static/js/ui.js" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

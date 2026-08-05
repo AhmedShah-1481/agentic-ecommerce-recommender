@@ -8,6 +8,9 @@
   Built from what you have actually browsed, searched and lingered on.
 </p>
 
+{# The tracking the recommendation below is built from, made visible. #}
+{% include "_signal.html" %}
+
 {% if rec %}
   <section class="rec">
     <h1>{{ rec.headline }}</h1>
