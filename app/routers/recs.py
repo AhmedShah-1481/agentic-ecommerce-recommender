@@ -11,11 +11,12 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import Product, User
-from app.security import current_user
+from app.security import api_user
 from app.services import profile as profile_service
 from app.services import recommendations as rec_service
 from app.services import signal as signal_service
 from app.services import triggers
+from app.services.presenters import product_json
 
 router = APIRouter(prefix="/api", tags=["recommendations"])
 
@@ -37,14 +38,20 @@ def _serialise(rec, db: Session) -> dict:
         "generated_at": rec.generated_at.isoformat() if rec.generated_at else None,
         "items": [
             {
-                "product_id": item.product_id,
-                "title": products[item.product_id].title if item.product_id in products else "",
-                "category": products[item.product_id].category if item.product_id in products else "",
-                "price": products[item.product_id].price if item.product_id in products else 0.0,
                 "rank": item.rank,
+                # The agent's per-item justification. Rendered as a visible
+                # annotation on the card, not a tooltip - it is the output of the
+                # whole system, so hiding it behind a hover would bury the point.
                 "reason": item.reason,
+                # The full card shape, from the same presenter the catalog uses,
+                # so the storefront renders a recommended product with the very
+                # same component as a grid product.
+                "product": product_json(products[item.product_id]),
             }
             for item in rec.items
+            # Already guaranteed by `validate_grounding` and re-checked in
+            # `_persist`; kept here because a product deleted after the
+            # recommendation was written would otherwise KeyError on read.
             if item.product_id in products
         ],
     }
@@ -52,7 +59,7 @@ def _serialise(rec, db: Session) -> dict:
 
 @router.get("/recommendations")
 async def get_recommendations(
-    user: User = Depends(current_user),
+    user: User = Depends(api_user),
     db: Session = Depends(get_db),
 ):
     """Cached read plus a background refresh check - never awaits the model."""
@@ -67,7 +74,7 @@ async def get_recommendations(
 @router.get("/me/signal")
 async def my_signal(
     limit: int = signal_service.DEFAULT_LIMIT,
-    user: User = Depends(current_user),
+    user: User = Depends(api_user),
     db: Session = Depends(get_db),
 ):
     """The signed-in user's own recent tracked events.
@@ -85,7 +92,7 @@ async def my_signal(
 
 @router.post("/recommendations/refresh")
 async def refresh_recommendations(
-    user: User = Depends(current_user),
+    user: User = Depends(api_user),
     db: Session = Depends(get_db),
 ):
     """Explicit user-initiated refresh.

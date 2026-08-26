@@ -44,3 +44,9 @@ def _money(value: float | None) -> str:
 templates.env.filters["timeago"] = timeago
 templates.env.filters["money"] = _money
 templates.env.globals["app_name"] = settings.app_name
+# The customer-facing pages are React on their own origin now, so any link out of
+# an admin page or the inbox needs an absolute storefront URL rather than a path.
+# A global, not a per-render context value: every template that links to a
+# product needs it, and passing it explicitly from each route is how one of them
+# ends up linking to a route that stopped being HTML.
+templates.env.globals["storefront_url"] = settings.storefront_url.rstrip("/")

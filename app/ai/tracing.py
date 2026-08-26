@@ -7,7 +7,7 @@ Two things live here, both env-gated:
     it, so anything imported afterwards sees a configured tracer.
   * `traceable()` is a decorator that adds a LangSmith span when tracing is on
     and returns the function untouched when it is not. That is what lets the
-    Mesh client be instrumented without making LangSmith a hard dependency of
+    Gemini client be instrumented without making LangSmith a hard dependency of
     the recommendation path - no key means no spans, not a broken run.
 """
 
@@ -63,7 +63,7 @@ def traceable(**options) -> Callable:
 
 
 def redact_inputs(inputs: dict) -> dict:
-    """Span input formatter for the Mesh client.
+    """Span input formatter for the Gemini client.
 
     Drops `self` (the client object is noise, and serialising it would carry the
     API key into the trace payload) and keeps the messages, which are the part

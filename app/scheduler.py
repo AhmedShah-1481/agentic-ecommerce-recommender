@@ -100,7 +100,7 @@ def render_digest(user: User, rec: Recommendation) -> str:
             "product_id": item.product_id,
             "title": item.product.title if item.product else "",
             "category": item.product.category if item.product else "",
-            "level": item.product.level if item.product else "",
+            "brand": item.product.brand if item.product else "",
             "price_label": ("Free" if not item.product or not item.product.price
                             else f"${item.product.price:,.0f}"),
             "reason": item.reason,
@@ -112,7 +112,10 @@ def render_digest(user: User, rec: Recommendation) -> str:
     template = templates.env.get_template("email/digest.html")
     return template.render(
         app_name=settings.app_name,
-        base_url=settings.base_url.rstrip("/"),
+        # The customer-facing links in this email are React routes, so they need
+        # the storefront origin. `base_url` is the API, where /product/{id} is
+        # JSON and /for-you does not exist at all.
+        storefront_url=settings.storefront_url.rstrip("/"),
         user=user,
         headline=rec.headline or "Picked for you",
         narrative=rec.narrative,
@@ -163,7 +166,7 @@ async def _digest_for_user(user_id: int, day: date) -> str:
             return "no_recommendation"
 
         html = render_digest(user, rec)
-        subject = rec.headline or f"{settings.app_name}: your next courses"
+        subject = rec.headline or f"{settings.app_name}: picked for you"
         ok, detail = await mailer.send(user.email, subject, html)
 
         _finish_digest(
@@ -191,7 +194,7 @@ async def run_digests(*, day: date | None = None, window_hours: int = 24) -> dic
 
     results: dict[str, int] = {}
     # Sequential on purpose: each digest is an LLM call, and a burst of them
-    # would compete with live user traffic for the same Mesh rate limit.
+    # would compete with live user traffic for the same Gemini rate limit.
     for user_id in candidates:
         try:
             outcome = await _digest_for_user(user_id, day)

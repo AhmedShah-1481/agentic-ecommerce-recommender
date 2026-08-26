@@ -33,10 +33,11 @@ from sqlalchemy import select
 from app.agent import prompts
 from app.agent.state import AgentState
 from app.ai import embeddings
-from app.ai.mesh_client import mesh_client
+from app.ai.gemini_client import gemini_client
 from app.config import settings
 from app.db import SessionLocal
 from app.models import Product
+from app.services import catalog
 from app.vector import store
 
 logger = logging.getLogger(__name__)
@@ -67,8 +68,8 @@ async def analyze_behavior(state: AgentState) -> dict:
 
     fallback = {
         "interests": [c["category"] for c in profile.get("top_categories", [])[:3]],
-        "inferred_goal": "",
-        "skill_gaps": [],
+        "inferred_intent": "",
+        "unmet_needs": [],
         "queries": [],
         "metadata_filter": {},
         "used_llm": False,
@@ -78,27 +79,41 @@ async def analyze_behavior(state: AgentState) -> dict:
         c["category"] for c in profile.get("top_categories", [])[:2]
     ] + profile.get("recent_searches", [])[:2]
 
-    if not settings.mesh_configured:
+    if not settings.gemini_configured:
         return {
             **fallback,
-            "trace": _trace("analyze_behavior", started, skipped="mesh_not_configured"),
+            "trace": _trace("analyze_behavior", started, skipped="gemini_not_configured"),
         }
 
+    # The brand facet is open-vocabulary, so the stocked list is both given to
+    # the model and used to validate what comes back.
+    db = SessionLocal()
     try:
-        data = await mesh_client.chat_json(
+        known_brands = catalog.brands(db)
+    except Exception:  # noqa: BLE001 - a DB hiccup here must not lose the analysis
+        logger.warning("Could not load brand vocabulary", exc_info=True)
+        known_brands = []
+    finally:
+        db.close()
+
+    try:
+        data = await gemini_client.chat_json(
             [
                 {"role": "system", "content": prompts.ANALYSE_SYSTEM},
                 {
                     "role": "user",
-                    "content": prompts.analyse_user_prompt(profile, seen_titles),
+                    "content": prompts.analyse_user_prompt(
+                        profile, seen_titles, brands=known_brands
+                    ),
                 },
             ],
             purpose="agent_analyze",
             user_id=state.get("user_id"),
             temperature=0.3,
             max_tokens=1400,
+            response_schema=prompts.ANALYSE_SCHEMA,
         )
-    except Exception as exc:  # noqa: BLE001 - MeshError/timeouts: degrade, never crash
+    except Exception as exc:  # noqa: BLE001 - GeminiError/timeouts: degrade, never crash
         logger.warning("analyze_behavior failed, using behavioural fallback: %s", exc)
         return {
             **fallback,
@@ -108,15 +123,18 @@ async def analyze_behavior(state: AgentState) -> dict:
     queries = [q for q in (data.get("queries") or []) if isinstance(q, str) and q.strip()]
     interests = [i for i in (data.get("interests") or []) if isinstance(i, str)]
 
-    suggested = data.get("suggested_level")
+    # Validated against the real catalog vocabulary. A brand we don't stock would
+    # still build a *valid* Chroma filter - one that matches nothing - so an
+    # unrecognised suggestion is dropped rather than allowed to empty the slate.
+    suggested = data.get("suggested_brand")
     metadata_filter: dict[str, Any] = {}
-    if suggested in {"beginner", "intermediate", "advanced"}:
-        metadata_filter["level"] = suggested
+    if isinstance(suggested, str) and suggested in known_brands:
+        metadata_filter["brand"] = suggested
 
     return {
         "interests": interests[:5],
-        "inferred_goal": str(data.get("inferred_goal") or "")[:300],
-        "skill_gaps": [g for g in (data.get("skill_gaps") or []) if isinstance(g, str)][:3],
+        "inferred_intent": str(data.get("inferred_intent") or "")[:300],
+        "unmet_needs": [g for g in (data.get("unmet_needs") or []) if isinstance(g, str)][:3],
         "queries": queries[:4] or fallback["queries"],
         "metadata_filter": metadata_filter,
         "used_llm": True,
@@ -124,8 +142,9 @@ async def analyze_behavior(state: AgentState) -> dict:
             "analyze_behavior",
             started,
             interests=interests[:5],
-            goal=str(data.get("inferred_goal") or "")[:120],
+            intent=str(data.get("inferred_intent") or "")[:120],
             queries=queries[:4],
+            brand_filter=metadata_filter.get("brand") or "",
         ),
     }
 
@@ -141,7 +160,7 @@ def decide_retrieval(state: AgentState) -> str:
 
 
 async def cold_start(state: AgentState) -> dict:
-    """No usable behaviour: return top-rated published courses, zero LLM spend."""
+    """No usable behaviour: return top-rated published products, zero LLM spend."""
     started = time.perf_counter()
     db = SessionLocal()
     try:
@@ -159,7 +178,9 @@ async def cold_start(state: AgentState) -> dict:
                 "title": p.title,
                 "category": p.category,
                 "subcategory": p.subcategory,
-                "level": p.level,
+                "brand": p.brand,
+                "size": p.size,
+                "color": p.color,
                 "price": float(p.price or 0),
                 "description": p.description,
                 "score": 0.0,
@@ -173,12 +194,12 @@ async def cold_start(state: AgentState) -> dict:
     return {
         "selected": selected,
         "is_fallback": True,
-        "headline": "Start with our highest-rated courses",
+        "headline": "Start with our best-rated pieces",
         "narrative": (
-            "You're just getting started, so here are the courses learners rate most highly. "
-            "Explore a few and your recommendations will sharpen to match your interests."
+            "You're new here, so here's what our customers rate most highly. "
+            "Browse a few and your recommendations will sharpen to match your taste."
         ),
-        "item_reasons": {p["id"]: "Consistently top-rated by learners." for p in selected},
+        "item_reasons": {p["id"]: "Consistently top-rated by customers." for p in selected},
         "trace": _trace("cold_start", started, count=len(selected)),
     }
 
@@ -186,27 +207,20 @@ async def cold_start(state: AgentState) -> dict:
 # --------------------------------------------------------------------------
 # 3. Multi-query retrieval with metadata filtering + reciprocal rank fusion
 # --------------------------------------------------------------------------
-async def multi_query_retrieve(state: AgentState) -> dict:
-    started = time.perf_counter()
-    queries = state.get("queries") or []
-    metadata_filter = dict(state.get("metadata_filter") or {})
-
-    where: dict[str, Any] = {"is_published": True}
-    # Chroma needs an explicit $and for multiple conditions.
-    if metadata_filter.get("level"):
-        where = {
-            "$and": [
-                {"is_published": True},
-                {"level": metadata_filter["level"]},
-            ]
-        }
-
+async def _fan_out(queries: list[str], where: dict[str, Any]) -> tuple[dict[int, dict], list[dict]]:
+    """Embed each query, search, and fuse the rank lists. Returns (fused, trace)."""
     fused: dict[int, dict] = {}
     per_query: list[dict] = []
 
-    for rank_list_index, query in enumerate(queries):
+    for query in queries:
         try:
-            vector = await embeddings.embed_one(query, purpose="agent_retrieve")
+            # Embedded as a QUERY, not a document. Gemini builds an asymmetric
+            # pair - `RETRIEVAL_QUERY` vectors are optimised to land near the
+            # `RETRIEVAL_DOCUMENT` vectors catalog.py stored - and getting this
+            # backwards costs relevance without raising anything.
+            vector = await embeddings.embed_one(
+                query, purpose="agent_retrieve", task=embeddings.TASK_QUERY
+            )
             hits = store.query(vector, n_results=CANDIDATES_PER_QUERY, where=where)
         except Exception as exc:  # noqa: BLE001
             logger.warning("Retrieval failed for query %r: %s", query, exc)
@@ -218,7 +232,7 @@ async def multi_query_retrieve(state: AgentState) -> dict:
         )
 
         # Reciprocal rank fusion: robust to score-scale differences between
-        # queries, and rewards courses that surface for several intents.
+        # queries, and rewards products that surface for several intents.
         for position, hit in enumerate(hits):
             pid = hit["id"]
             entry = fused.setdefault(
@@ -234,6 +248,38 @@ async def multi_query_retrieve(state: AgentState) -> dict:
             entry["rrf"] += 1.0 / (RRF_K + position + 1)
             entry["best_score"] = max(entry["best_score"], hit["score"])
             entry["matched_queries"] += 1
+
+    return fused, per_query
+
+
+async def multi_query_retrieve(state: AgentState) -> dict:
+    started = time.perf_counter()
+    queries = state.get("queries") or []
+    metadata_filter = dict(state.get("metadata_filter") or {})
+
+    where: dict[str, Any] = {"is_published": True}
+    # Chroma needs an explicit $and for multiple conditions.
+    if metadata_filter.get("brand"):
+        where = {
+            "$and": [
+                {"is_published": True},
+                {"brand": metadata_filter["brand"]},
+            ]
+        }
+
+    fused, per_query = await _fan_out(queries, where)
+
+    # A brand filter is a hard prune, and unlike the enum it replaced it can be
+    # satisfiable in the catalog yet empty in the user's topical area - a valid
+    # filter matching nothing. store.query() only retries unfiltered when the
+    # where-clause *raises*, so without this the slate would silently come back
+    # empty and the run would burn its refine attempts on good queries.
+    relaxed = False
+    if not fused and metadata_filter.get("brand"):
+        logger.info("Brand-filtered retrieval was empty; retrying unfiltered")
+        relaxed = True
+        where = {"is_published": True}
+        fused, per_query = await _fan_out(queries, where)
 
     candidates = sorted(fused.values(), key=lambda c: -c["rrf"])[:20]
 
@@ -260,7 +306,9 @@ async def multi_query_retrieve(state: AgentState) -> dict:
                     "description": product.description,
                     "category": product.category,
                     "subcategory": product.subcategory,
-                    "level": product.level,
+                    "brand": product.brand,
+                    "size": product.size,
+                    "color": product.color,
                     "price": float(product.price or 0),
                     "rating": float(product.rating or 0),
                     "tags": product.tags or [],
@@ -276,6 +324,9 @@ async def multi_query_retrieve(state: AgentState) -> dict:
     return {
         "candidates": candidates,
         "retrieval_quality": quality,
+        # Cleared when relaxed so the reranker doesn't keep favouring a brand the
+        # filter just proved absent from this topic.
+        "metadata_filter": {} if relaxed else metadata_filter,
         "trace": _trace(
             "multi_query_retrieve",
             started,
@@ -283,6 +334,7 @@ async def multi_query_retrieve(state: AgentState) -> dict:
             candidates=len(candidates),
             quality=round(quality, 3),
             filter=where,
+            filter_relaxed=relaxed,
         ),
     }
 
@@ -312,18 +364,18 @@ async def refine_query(state: AgentState) -> dict:
     candidates = state.get("candidates") or []
     quality = state.get("retrieval_quality", 0.0)
 
-    if not settings.mesh_configured:
+    if not settings.gemini_configured:
         # Widen mechanically: shorter queries match more broadly.
         widened = [" ".join(q.split()[:4]) for q in queries if q] or queries
         return {
             "queries": widened,
             "refine_attempts": attempts,
-            "metadata_filter": {},  # drop the level filter to widen the net
+            "metadata_filter": {},  # drop the brand filter to widen the net
             "trace": _trace("refine_query", started, strategy="mechanical", attempt=attempts),
         }
 
     try:
-        data = await mesh_client.chat_json(
+        data = await gemini_client.chat_json(
             [
                 {"role": "system", "content": prompts.REFINE_SYSTEM},
                 {
@@ -335,6 +387,7 @@ async def refine_query(state: AgentState) -> dict:
             user_id=state.get("user_id"),
             temperature=0.5,
             max_tokens=900,
+            response_schema=prompts.REFINE_SCHEMA,
         )
         new_queries = [q for q in (data.get("queries") or []) if isinstance(q, str) and q.strip()]
     except Exception as exc:  # noqa: BLE001
@@ -358,7 +411,7 @@ def rerank_and_select(state: AgentState) -> dict:
     """Blend semantic score with behavioural fit, novelty and quality.
 
     Pure arithmetic - no LLM. Vector similarity alone ignores that the user
-    has already seen a course, or that it is pitched at the wrong level.
+    has already seen a product, or that it is from a brand they never look at.
     """
     started = time.perf_counter()
     candidates = list(state.get("candidates") or [])
@@ -369,9 +422,9 @@ def rerank_and_select(state: AgentState) -> dict:
         c["category"]: c["score"] for c in profile.get("top_categories", []) if c.get("category")
     }
     max_affinity = max(affinity.values(), default=1.0) or 1.0
-    preferred_level = state.get("preferred_level") or (
+    preferred_brand = state.get("preferred_brand") or (
         state.get("metadata_filter", {}) or {}
-    ).get("level")
+    ).get("brand")
     typical_price = profile.get("typical_price")
 
     # Normalise against the candidate set rather than an absolute scale. Cosine
@@ -396,14 +449,14 @@ def rerank_and_select(state: AgentState) -> dict:
 
         # Hygiene factors MODULATE relevance, they cannot create it. As additive
         # terms they were worth more (0.22) than category affinity itself (0.18),
-        # so an unseen well-rated course with no topical connection outscored a
-        # perfectly on-topic one - a Figma course ranked 3rd for an MLOps
-        # learner. Multiplying keeps them as tie-breakers.
-        level_fit = 1.0 if (preferred_level and candidate.get("level") == preferred_level) else 0.88
+        # so an unseen well-rated product with no topical connection outscored a
+        # perfectly on-topic one - a desk lamp ranked 3rd for someone shopping
+        # running shoes. Multiplying keeps them as tie-breakers.
+        brand_fit = 1.0 if (preferred_brand and candidate.get("brand") == preferred_brand) else 0.88
         quality = 0.94 + 0.06 * min(candidate.get("rating", 0.0) / 5.0, 1.0)
 
-        # Already-opened is a mild discount, not a veto: "continue where you
-        # left off" is a legitimate recommendation, just weaker than something new.
+        # Already-viewed is a mild discount, not a veto: "the one you keep coming
+        # back to" is a legitimate recommendation, just weaker than something new.
         novelty = 1.0 if candidate["id"] not in seen else 0.90
 
         price_fit = 1.0
@@ -412,12 +465,12 @@ def rerank_and_select(state: AgentState) -> dict:
             price_fit = 0.96 + 0.04 * max(0.0, 1.0 - min(ratio, 1.0))
 
         candidate["topical_score"] = topical
-        candidate["final_score"] = topical * novelty * level_fit * quality * price_fit
+        candidate["final_score"] = topical * novelty * brand_fit * quality * price_fit
 
     candidates.sort(key=lambda c: -c["final_score"])
 
     # Diversity, but not at the cost of relevance. A strict one-per-category
-    # cap drags in unrelated courses (a Kafka course for an agent learner)
+    # cap drags in unrelated products (a kettle for someone shopping trainers)
     # purely to fill slots. So: cap at 2 per category, and only consider
     # candidates within a relevance band of the best match.
     selected: list[dict] = []
@@ -483,7 +536,7 @@ async def generate_narrative(state: AgentState) -> dict:
     if not selected:
         return {
             "headline": "Nothing to recommend yet",
-            "narrative": "Browse a few courses and we'll tailor recommendations to you.",
+            "narrative": "Browse a few products and we'll tailor recommendations to you.",
             "item_reasons": {},
             "trace": _trace("generate_narrative", started, skipped="no_selection"),
         }
@@ -492,10 +545,10 @@ async def generate_narrative(state: AgentState) -> dict:
         cats = [c["category"] for c in profile.get("top_categories", [])[:2] if c.get("category")]
         focus = " and ".join(cats) if cats else "your recent activity"
         return {
-            "headline": f"Next steps in {cats[0]}" if cats else "Picked for you",
+            "headline": f"More from {cats[0]}" if cats else "Picked for you",
             "narrative": (
-                f"Based on {focus}, these courses line up with what you've been exploring. "
-                "Each one builds directly on the topics you spent the most time with."
+                f"Based on {focus}, these picks line up with what you've been browsing. "
+                "Each one sits close to the products you spent the most time with."
             ),
             "item_reasons": {
                 s["id"]: f"Matches your interest in {s.get('category') or 'this area'}."
@@ -505,11 +558,11 @@ async def generate_narrative(state: AgentState) -> dict:
             "trace": _trace("generate_narrative", started, strategy="mechanical"),
         }
 
-    if not settings.mesh_configured:
+    if not settings.gemini_configured:
         return _mechanical()
 
     try:
-        data = await mesh_client.chat_json(
+        data = await gemini_client.chat_json(
             [
                 {"role": "system", "content": prompts.GENERATE_SYSTEM},
                 {
@@ -526,6 +579,7 @@ async def generate_narrative(state: AgentState) -> dict:
             user_id=state.get("user_id"),
             temperature=0.7,
             max_tokens=1600,
+            response_schema=prompts.GENERATE_SCHEMA,
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning("generate_narrative failed, using mechanical copy: %s", exc)
@@ -559,7 +613,7 @@ async def validate_grounding(state: AgentState) -> dict:
 
     Two failure modes are checked:
       * a reason attached to an id that was never retrieved
-      * a narrative naming a course title that isn't in the slate
+      * a narrative naming a product title that isn't in the slate
     """
     started = time.perf_counter()
     selected = state.get("selected") or []
@@ -572,7 +626,7 @@ async def validate_grounding(state: AgentState) -> dict:
     for pid in hallucinated:
         reasons.pop(pid, None)
 
-    # Any selected course missing a reason gets a grounded default.
+    # Any selected product missing a reason gets a grounded default.
     for item in selected:
         if item["id"] not in reasons or not reasons[item["id"]].strip():
             reasons[item["id"]] = (

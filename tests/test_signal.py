@@ -45,8 +45,9 @@ def seeded(db):
         ]
     )
     db.add(
-        Product(id=1, title="Vector Search at Scale", description="", category="AI Engineering",
-                subcategory="RAG", level="advanced", price=100.0, tags=["rag"], rating=4.8)
+        Product(id=1, title="Longhaul Cushioned Trainer", description="", category="Footwear",
+                subcategory="Running", brand="Kestrelane", price=152.0, tags=["running"],
+                rating=4.8)
     )
     db.commit()
     return db
@@ -79,7 +80,7 @@ def test_a_user_never_sees_another_users_events(seeded):
     mine = signal_service.recent(seeded, 1)
     theirs = signal_service.recent(seeded, 2)
 
-    assert [c["detail"] for c in mine] == ["Vector Search at Scale"]
+    assert [c["detail"] for c in mine] == ["Longhaul Cushioned Trainer"]
     assert [c["detail"] for c in theirs] == ["secret interest"]
 
 
@@ -140,13 +141,13 @@ def test_a_search_shows_the_query(seeded):
     assert chip["detail"] == "agentic ai"
 
 
-def test_a_dwell_shows_duration_and_course(seeded):
+def test_a_dwell_shows_duration_and_product(seeded):
     seeded.add(_event("d", "dwell", product_id=1, dwell_ms=12_000))
     seeded.commit()
 
     chip = signal_service.recent(seeded, 1)[0]
     assert chip["verb"] == "Dwell"
-    assert chip["detail"] == "12s on Vector Search at Scale"
+    assert chip["detail"] == "12s on Longhaul Cushioned Trainer"
 
 
 def test_a_long_dwell_is_rendered_in_minutes(seeded):

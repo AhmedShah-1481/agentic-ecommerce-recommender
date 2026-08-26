@@ -20,22 +20,24 @@ class Settings(BaseSettings):
     # ---- App ----
     secret_key: str = "dev-insecure-secret-change-me"
     debug: bool = True
-    app_name: str = "LearnLoop"
+    app_name: str = "Bazario Mart"
 
     # ---- Database ----
     database_url: str = "sqlite:///./data/app.db"
 
-    # ---- Mesh API (all LLM/embedding traffic) ----
-    mesh_api_base_url: str = "https://api.meshapi.ai/v1"
-    mesh_api_key: str = ""
-    mesh_chat_model: str = "tencent/hy3"
-    # Mesh namespaces embedding models by provider (e.g. openai/..., baai/...).
-    mesh_embed_model: str = "openai/text-embedding-3-small"
-    mesh_embed_enabled: bool = True
-    # tencent/hy3 is a reasoning model: real prompts take ~40s, so a short
-    # timeout guarantees failure. Measured against the live API.
-    mesh_timeout_seconds: float = 120.0
-    mesh_max_retries: int = 2
+    # ---- Gemini (all LLM/embedding traffic) ----
+    gemini_api_key: str = ""
+    gemini_chat_model: str = "gemini-3.6-flash"
+    gemini_embed_model: str = "gemini-embedding-001"
+    gemini_embed_enabled: bool = True
+    # gemini-embedding-001 is natively 3072-dim but supports Matryoshka
+    # truncation. 768 keeps the Chroma index small without measurably hurting
+    # retrieval, and is one of the three dimensions Google recommends (768,
+    # 1536, 3072). Changing it changes the collection's dimensionality, which
+    # Chroma pins at first insert - see catalog.reconcile().
+    gemini_embed_dimensions: int = 768
+    gemini_timeout_seconds: float = 60.0
+    gemini_max_retries: int = 2
 
     # ---- Vector store ----
     chroma_path: str = "./data/chroma"
@@ -54,12 +56,24 @@ class Settings(BaseSettings):
     digest_minute: int = 0
     reconcile_minutes: int = 5
     event_retention_days: int = 30
-    # Emails render outside a request, so links need an absolute origin.
+    # Emails render outside a request, so links need an absolute origin. This is
+    # the *API* origin - anything customer-facing in an email points at
+    # `storefront_url` instead, since the pages a shopper lands on are React now.
     base_url: str = "http://127.0.0.1:8000"
+
+    # ---- Storefront (React + Vite) ----
+    # Where the customer-facing app is served from. Used for links in emails and
+    # for the API index at "/", so a digest sent by the scheduler points at a
+    # page that exists rather than at a route that is now JSON.
+    storefront_url: str = "http://localhost:5173"
+    # Comma-separated rather than list[str]: pydantic-settings parses a list from
+    # the environment as JSON, which means quoting a JSON array inside .env. A
+    # comma-separated string is what anyone editing that file expects to write.
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     # ---- Email ----
     email_backend: str = "outbox"
-    email_from: str = "recommendations@learnloop.dev"
+    email_from: str = "recommendations@bazariomart.com"
     outbox_dir: str = "./outbox"
     smtp_host: str = ""
     smtp_port: int = 587
@@ -70,16 +84,28 @@ class Settings(BaseSettings):
     # ---- Observability ----
     langsmith_tracing: bool = False
     langsmith_api_key: str = ""
-    langsmith_project: str = "learnloop-agent"
+    langsmith_project: str = "bazario-agent"
 
     @property
-    def mesh_configured(self) -> bool:
-        """True when a real Mesh credential is present.
+    def gemini_configured(self) -> bool:
+        """True when a real Gemini credential is present.
 
         Everything AI-shaped checks this first, so the site stays fully
         browsable with no key configured.
         """
-        return bool(self.mesh_api_key.strip())
+        return bool(self.gemini_api_key.strip())
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """Allowed browser origins for the JSON API.
+
+        Explicit origins, never `["*"]`: the storefront authenticates with the
+        session cookie, so the middleware runs with `allow_credentials=True`,
+        and browsers refuse a wildcard `Access-Control-Allow-Origin` on a
+        credentialed request. A wildcard here would fail at runtime rather than
+        loosen anything.
+        """
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     def resolve(self, value: str) -> Path:
         """Resolve a possibly-relative configured path against the project root."""

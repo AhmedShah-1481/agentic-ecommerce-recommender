@@ -39,11 +39,12 @@ def seeded(db):
     db.add(User(id=1, email="a@b.dev", password_hash="x"))
     db.add_all(
         [
-            Product(id=1, title="Vector Search", description="", category="AI Engineering",
-                    subcategory="RAG", level="advanced", price=100.0, tags=["rag"], rating=4.8),
-            Product(id=2, title="Airflow Basics", description="", category="Data Engineering",
-                    subcategory="Orchestration", level="beginner", price=80.0, tags=["airflow"],
-                    rating=4.5),
+            Product(id=1, title="Tempo Pace Running Shoe", description="", category="Footwear",
+                    subcategory="Running", brand="Kestrelane", price=138.0, tags=["running"],
+                    rating=4.7),
+            Product(id=2, title="Cast Iron Dutch Oven", description="", category="Home & Kitchen",
+                    subcategory="Cookware", brand="Copperleaf", price=189.0, tags=["braising"],
+                    rating=4.8),
         ]
     )
     db.commit()
@@ -85,9 +86,9 @@ def test_recent_interest_outranks_a_larger_pile_of_stale_interest(seeded):
 
     snapshot = profile_service.build_snapshot(seeded, 1)
 
-    assert snapshot.top_categories[0] == "AI Engineering"
-    assert snapshot.category_affinity["AI Engineering"] > snapshot.category_affinity[
-        "Data Engineering"
+    assert snapshot.top_categories[0] == "Footwear"
+    assert snapshot.category_affinity["Footwear"] > snapshot.category_affinity[
+        "Home & Kitchen"
     ]
 
 
@@ -100,8 +101,8 @@ def test_event_weight_ordering_reaches_the_score(seeded):
 
     snapshot = profile_service.build_snapshot(seeded, 1)
 
-    assert snapshot.category_affinity["Data Engineering"] > snapshot.category_affinity[
-        "AI Engineering"
+    assert snapshot.category_affinity["Home & Kitchen"] > snapshot.category_affinity[
+        "Footwear"
     ]
 
 
@@ -136,7 +137,7 @@ def test_signature_is_stable_across_rebuilds(seeded):
     """Same behaviour must hash the same, or the novelty gate never holds and
     every page load pays for a regeneration."""
     seeded.add(_event("a", "product_view", product_id=1))
-    seeded.add(_event("b", "search", search_query="rag"))
+    seeded.add(_event("b", "search", search_query="trail shoes"))
     seeded.commit()
 
     first = profile_service.build_snapshot(seeded, 1).signature
@@ -159,7 +160,7 @@ def test_signature_changes_when_the_user_moves_on(seeded):
 
 
 def test_signature_ignores_pure_repetition(seeded):
-    """Re-viewing the same course doesn't change *what* the user is interested
+    """Re-viewing the same product doesn't change *what* the user is interested
     in, so it must not invalidate the cache. This is the check that keeps a
     refresh-hammering tab from costing an LLM call per reload."""
     seeded.add(_event("a", "product_view", product_id=1))
@@ -174,13 +175,13 @@ def test_signature_ignores_pure_repetition(seeded):
 
 
 def test_searches_contribute_intent_without_a_product(seeded):
-    seeded.add(_event("s1", "search", search_query="LangGraph agents"))
+    seeded.add(_event("s1", "search", search_query="merino wool sweater"))
     seeded.commit()
 
     snapshot = profile_service.build_snapshot(seeded, 1)
 
-    assert snapshot.recent_searches == ["LangGraph agents"]
-    assert "langgraph" in snapshot.tag_affinity
+    assert snapshot.recent_searches == ["merino wool sweater"]
+    assert "merino" in snapshot.tag_affinity
 
 
 def test_a_category_filter_counts_as_intent(seeded):
@@ -188,23 +189,23 @@ def test_a_category_filter_counts_as_intent(seeded):
     page_view, which carries no product and is excluded from the meaningful
     types, so the facet reached neither the profile nor the momentum gate. It is
     now emitted as a `search`, which lands here."""
-    seeded.add(_event("f1", "search", search_query="Web Development"))
+    seeded.add(_event("f1", "search", search_query="Electronics & Audio"))
     seeded.commit()
 
     snapshot = profile_service.build_snapshot(seeded, 1)
 
     assert snapshot.total_events == 1
-    assert snapshot.recent_searches == ["Web Development"]
+    assert snapshot.recent_searches == ["Electronics & Audio"]
     # Tokens >2 chars reach tag affinity, so the facet steers retrieval.
-    assert "web" in snapshot.tag_affinity
-    assert "development" in snapshot.tag_affinity
+    assert "electronics" in snapshot.tag_affinity
+    assert "audio" in snapshot.tag_affinity
 
 
 def test_two_distinct_filters_set_high_signal(seeded):
     """Two facets in one session is the repeat-intent path in profile.py, and
     it is what lets a browsing burst clear the momentum gate on 2 events."""
-    seeded.add(_event("f1", "search", search_query="Web Development"))
-    seeded.add(_event("f2", "search", search_query="Security", hours_ago=0.1))
+    seeded.add(_event("f1", "search", search_query="Electronics & Audio"))
+    seeded.add(_event("f2", "search", search_query="Beauty", hours_ago=0.1))
     seeded.commit()
 
     assert profile_service.build_snapshot(seeded, 1).high_signal is True
@@ -213,10 +214,10 @@ def test_two_distinct_filters_set_high_signal(seeded):
 def test_filtering_alone_still_cannot_cold_start(seeded):
     """Honest bound on the fix: has_signal() requires category_affinity, which
     only events carrying a product_id populate. Filtering moves momentum and
-    retrieval, but a first recommendation still needs a course to be opened."""
-    seeded.add(_event("f1", "search", search_query="Web Development"))
-    seeded.add(_event("f2", "search", search_query="Security", hours_ago=0.1))
-    seeded.add(_event("f3", "search", search_query="Design", hours_ago=0.2))
+    retrieval, but a first recommendation still needs a product to be opened."""
+    seeded.add(_event("f1", "search", search_query="Electronics & Audio"))
+    seeded.add(_event("f2", "search", search_query="Beauty", hours_ago=0.1))
+    seeded.add(_event("f3", "search", search_query="Outdoor", hours_ago=0.2))
     seeded.commit()
 
     snapshot = profile_service.build_snapshot(seeded, 1)

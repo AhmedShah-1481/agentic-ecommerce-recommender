@@ -163,11 +163,18 @@ async def _drain_once() -> int:
     queue = get_queue()
     batch: list[dict] = []
 
+    # Only the timeout is caught below: an idle queue is not an error. A
+    # CancelledError must be allowed through, or the consumer task becomes
+    # un-cancellable - `_consumer` loops straight into another drain, its own
+    # `except CancelledError: break` never fires, and `stop_consumer`'s
+    # `await _consumer_task` hangs the whole shutdown with nothing logged.
+    # Nothing is lost by letting it through: stop_consumer drains the queue
+    # before it cancels. Pinned by tests/test_event_consumer_shutdown.py.
     try:
         first = await asyncio.wait_for(queue.get(), timeout=DRAIN_INTERVAL)
         batch.append(first)
         queue.task_done()
-    except (asyncio.TimeoutError, asyncio.CancelledError):
+    except asyncio.TimeoutError:
         return 0
 
     while len(batch) < DRAIN_BATCH:

@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div data-ll-page="admin-products"></div>
-
 <div class="toolbar">
   <h1 style="margin:0">Products</h1>
   <span class="spacer"></span>
@@ -10,7 +8,7 @@
   <a class="btn btn-sm btn-ghost" href="/admin/ai-usage">AI usage</a>
   <a class="btn btn-sm btn-ghost" href="/admin/traces">Traces</a>
   <a class="btn btn-sm btn-ghost" href="/admin/events">Events</a>
-  <a class="btn btn-sm" href="/admin/products/new">New course</a>
+  <a class="btn btn-sm" href="/admin/products/new">New product</a>
 </div>
 
 <div class="stats">
@@ -36,7 +34,7 @@
   <table>
     <thead>
       <tr>
-        <th>Title</th><th>Category</th><th>Level</th>
+        <th>Title</th><th>Category</th><th>Brand</th>
         <th class="num">Price</th><th>Vector</th><th></th>
       </tr>
     </thead>
@@ -45,7 +43,7 @@
         <tr>
           <td><a href="/admin/products/{{ p.id }}">{{ p.title }}</a></td>
           <td>{{ p.category }}</td>
-          <td>{{ p.level }}</td>
+          <td>{{ p.brand }}</td>
           <td class="num">{{ p.price | money }}</td>
           <td>
             {% if p.vector_state == 'synced' %}
@@ -58,7 +56,7 @@
           </td>
           <td class="num">
             <form method="post" action="/admin/products/{{ p.id }}/delete" class="inline"
-                  onsubmit="return confirm('Delete this course? It is removed from SQL and the vector store.')">
+                  onsubmit="return confirm('Delete this product? It is removed from SQL and the vector store.')">
               <button class="link-btn" type="submit">Delete</button>
             </form>
           </td>

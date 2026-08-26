@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div data-ll-page="admin-traces"></div>
-
 <p class="path"><a href="/admin">Products</a> / Agent traces</p>
 
 <h1>Agent traces</h1>
@@ -50,9 +48,9 @@
         </ul>
       {% endif %}
 
-      {% if rec.agent_trace and rec.agent_trace.inferred_goal %}
-        <h3 style="margin-top:12px">Inferred goal</h3>
-        <p style="margin:0;color:var(--muted)">{{ rec.agent_trace.inferred_goal }}</p>
+      {% if rec.agent_trace and rec.agent_trace.inferred_intent %}
+        <h3 style="margin-top:12px">Inferred intent</h3>
+        <p style="margin:0;color:var(--muted)">{{ rec.agent_trace.inferred_intent }}</p>
       {% endif %}
 
       <h3 style="margin-top:12px">Nodes</h3>

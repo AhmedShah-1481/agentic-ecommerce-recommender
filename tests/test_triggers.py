@@ -90,7 +90,11 @@ def test_first_recommendation_is_allowed_once_there_is_signal(db):
 # --------------------------------------------------------------------------
 # Gate: cooldown
 # --------------------------------------------------------------------------
-def test_cooldown_blocks_a_rapid_second_generation(db):
+def test_cooldown_blocks_a_rapid_second_generation(db, monkeypatch):
+    """The cooldown is pinned rather than read from the environment: `.env` may
+    carry REC_COOLDOWN_MINUTES=1 for a live demo, and a 1-minute-old rec would
+    then be *outside* the window and reach the momentum gate instead."""
+    monkeypatch.setattr(settings, "rec_cooldown_minutes", 10)
     _existing_rec(db, age_minutes=1)
     _state(db, last_rec_at=_now() - timedelta(minutes=1), events_since_last_rec=100)
 

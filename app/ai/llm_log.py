@@ -1,4 +1,4 @@
-"""Records every Mesh call so AI spend is auditable at /admin/ai-usage.
+"""Records every Gemini call so AI spend is auditable at /admin/ai-usage.
 
 Logging must never break a request, so all failures here are swallowed.
 """

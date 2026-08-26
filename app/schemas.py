@@ -55,10 +55,43 @@ class ProductIn(BaseModel):
     description: str = ""
     category: str = Field(default="", max_length=80)
     subcategory: str = Field(default="", max_length=80)
-    level: str = "beginner"
+    brand: str = Field(default="", max_length=60)
     price: float = 0.0
     tags: list[str] = Field(default_factory=list)
-    instructor: str = Field(default="", max_length=120)
-    duration_hours: float = 0.0
+    size: str = Field(default="One Size", max_length=20)
+    color: str = Field(default="", max_length=30)
     rating: float = 0.0
     is_published: bool = True
+
+
+# --------------------------------------------------------------------------
+# JSON auth
+#
+# Deliberately loose where the form handlers are loose. The real rules live in
+# `routers/auth.py` so the HTML and JSON paths enforce one set; duplicating a
+# length check here would let the two drift and quietly disagree about what a
+# valid password is. `max_length` is only here to bound what reaches bcrypt and
+# the database.
+# --------------------------------------------------------------------------
+class LoginIn(BaseModel):
+    email: str = Field(max_length=255)
+    password: str = Field(max_length=255)
+
+
+class RegisterIn(LoginIn):
+    name: str = Field(default="", max_length=120)
+
+
+class PublicUser(BaseModel):
+    """What the client is allowed to know about the signed-in account.
+
+    Built field by field rather than from the ORM object, so adding a column to
+    `User` can never widen this response by accident - `password_hash` being the
+    one that matters.
+    """
+
+    id: int
+    email: str
+    name: str
+    role: str
+    is_admin: bool

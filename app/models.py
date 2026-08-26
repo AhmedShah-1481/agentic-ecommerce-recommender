@@ -60,12 +60,15 @@ class User(Base):
 # Catalog
 # --------------------------------------------------------------------------
 class Product(Base):
-    """A course. Dual-written to SQL (here) and the vector store.
+    """A catalog product. Dual-written to SQL (here) and the vector store.
 
     `content_hash` fingerprints the embedded text so an edit that doesn't
     change semantics (e.g. price) skips re-embedding entirely.
     `vector_state` lets a failed vector write degrade to a repair job
     instead of failing the admin's request.
+
+    `brand` is indexed because it is not just display: it is the metadata facet
+    the agent filters retrieval on and the reranker modulates score with.
     """
 
     __tablename__ = "products"
@@ -75,11 +78,11 @@ class Product(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     category: Mapped[str] = mapped_column(String(80), index=True, default="")
     subcategory: Mapped[str] = mapped_column(String(80), default="")
-    level: Mapped[str] = mapped_column(String(30), default="beginner")
+    brand: Mapped[str] = mapped_column(String(60), index=True, default="")
     price: Mapped[float] = mapped_column(Float, default=0.0)
     tags: Mapped[list] = mapped_column(JSON, default=list)
-    instructor: Mapped[str] = mapped_column(String(120), default="")
-    duration_hours: Mapped[float] = mapped_column(Float, default=0.0)
+    size: Mapped[str] = mapped_column(String(20), default="One Size")
+    color: Mapped[str] = mapped_column(String(30), default="")
     rating: Mapped[float] = mapped_column(Float, default=0.0)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -92,12 +95,18 @@ class Product(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
     def embedding_text(self) -> str:
-        """The exact text that gets embedded - also what content_hash covers."""
+        """The exact text that gets embedded - also what content_hash covers.
+
+        `size` is deliberately excluded: "M" contributes nothing to semantic
+        retrieval, so a size correction stays as cheap as a price edit. `color`
+        is included because shoppers do search on it.
+        """
         tags = ", ".join(self.tags or [])
         return (
             f"{self.title}\n"
             f"Category: {self.category} / {self.subcategory}\n"
-            f"Level: {self.level}\n"
+            f"Brand: {self.brand}\n"
+            f"Color: {self.color}\n"
             f"Tags: {tags}\n"
             f"{self.description}"
         )
@@ -214,7 +223,7 @@ class RecommendationItem(Base):
 # Observability
 # --------------------------------------------------------------------------
 class LLMCall(Base):
-    """One row per Mesh call - the receipt behind the efficiency claims."""
+    """One row per Gemini call - the receipt behind the efficiency claims."""
 
     __tablename__ = "llm_calls"
 

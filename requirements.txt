@@ -11,8 +11,8 @@ httpx==0.28.1
 python-dotenv==1.2.2
 email-validator==2.3.0
 
-# Mesh API access (OpenAI-compatible surface)
-openai==2.52.1
+# Gemini API access (chat + embeddings)
+google-genai==2.19.0
 
 # Vector store
 chromadb==1.5.9

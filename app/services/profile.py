@@ -48,7 +48,7 @@ class ProfileSnapshot:
     category_affinity: dict[str, float] = field(default_factory=dict)
     subcategory_affinity: dict[str, float] = field(default_factory=dict)
     tag_affinity: dict[str, float] = field(default_factory=dict)
-    level_affinity: dict[str, float] = field(default_factory=dict)
+    brand_affinity: dict[str, float] = field(default_factory=dict)
     recent_searches: list[str] = field(default_factory=list)
     viewed_product_ids: list[int] = field(default_factory=list)
     engaged_products: list[dict] = field(default_factory=list)
@@ -65,10 +65,10 @@ class ProfileSnapshot:
         return [t for t, _ in sorted(self.tag_affinity.items(), key=lambda kv: -kv[1])[:8]]
 
     @property
-    def preferred_level(self) -> str | None:
-        if not self.level_affinity:
+    def preferred_brand(self) -> str | None:
+        if not self.brand_affinity:
             return None
-        return max(self.level_affinity.items(), key=lambda kv: kv[1])[0]
+        return max(self.brand_affinity.items(), key=lambda kv: kv[1])[0]
 
     @property
     def avg_price(self) -> float | None:
@@ -87,7 +87,7 @@ class ProfileSnapshot:
                 for c, s in sorted(self.category_affinity.items(), key=lambda kv: -kv[1])[:5]
             ],
             "top_tags": self.top_tags,
-            "preferred_level": self.preferred_level,
+            "preferred_brand": self.preferred_brand,
             "recent_searches": self.recent_searches[:6],
             "most_engaged": self.engaged_products[:5],
             "typical_price": round(self.avg_price, 2) if self.avg_price else None,
@@ -181,9 +181,9 @@ def build_snapshot(db: Session, user_id: int, *, since_days: int = LOOKBACK_DAYS
             snapshot.subcategory_affinity[product.subcategory] = (
                 snapshot.subcategory_affinity.get(product.subcategory, 0.0) + score
             )
-        if product.level:
-            snapshot.level_affinity[product.level] = (
-                snapshot.level_affinity.get(product.level, 0.0) + score
+        if product.brand:
+            snapshot.brand_affinity[product.brand] = (
+                snapshot.brand_affinity.get(product.brand, 0.0) + score
             )
         for tag in product.tags or []:
             key = str(tag).lower()
@@ -221,6 +221,6 @@ def compute_signature(snapshot: ProfileSnapshot) -> str:
         "|".join(snapshot.top_categories[:5]),
         "|".join(sorted(s.lower() for s in snapshot.recent_searches[:3])),
         "|".join(str(p["id"]) for p in snapshot.engaged_products[:5]),
-        snapshot.preferred_level or "",
+        snapshot.preferred_brand or "",
     ]
     return hashlib.sha256("::".join(parts).encode()).hexdigest()[:32]

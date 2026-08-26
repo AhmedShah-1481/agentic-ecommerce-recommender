@@ -22,3 +22,6 @@ chroma/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local design screenshots (headless Chrome captures, not deliverables)
+.screens/

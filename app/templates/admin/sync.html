@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div data-ll-page="admin-sync"></div>
-
 <p class="path"><a href="/admin">Products</a> / Vector sync</p>
 
 <h1>Dual-write state</h1>
@@ -17,6 +15,15 @@
     re-embedded {{ report.reembedded }}, orphan vectors deleted
     {{ report.orphans_deleted }}, still failing {{ report.still_failing }}.
   </div>
+  {% if report.dimension_reset %}
+    <div class="alert alert-warn">
+      Vector width changed ({{ report.dimension_reset['from'] }} &rarr;
+      {{ report.dimension_reset['to'] }}), so the collection was dropped and
+      rebuilt. Chroma pins a collection's dimensionality at its first insert,
+      which makes this the one drift that cannot be repaired row by row. SQL was
+      untouched - the vectors are a derived index.
+    </div>
+  {% endif %}
 {% endif %}
 
 <div class="stats">
@@ -60,12 +67,20 @@
   <h3 style="margin-top:16px">Embedding provider</h3>
   <p class="path">
     Configured: <code>{{ status.configured_provider }}</code><br>
-    Stored in vectors: <code>{{ status.vector_providers | join(', ') or 'none' }}</code>
+    Stored in vectors: <code>{{ status.vector_providers | join(', ') or 'none' }}</code><br>
+    Vector width: <code>{{ status.vector_dim or 'unpinned' }}</code>
+    (this process writes <code>{{ status.target_dim }}</code>)
+    {% if status.vector_dim and status.vector_dim != status.target_dim %}
+      <br><span class="pill pill-bad">width mismatch</span>
+      The next reconcile will drop and rebuild the collection. Until it runs,
+      both writes and queries against this collection fail.
+    {% endif %}
     {% if status.using_fallback %}
       <br><span class="pill pill-warn">local fallback active</span>
-      Mesh embeddings are unavailable, so a deterministic local embedder is in
-      use. Retrieval still works; restoring Mesh access needs no code change,
-      because reconcile detects the provider change and re-embeds.
+      Gemini embeddings are unavailable, so a deterministic local embedder is in
+      use - at the same width, so nothing breaks. Retrieval still works;
+      restoring Gemini access needs no code change, because reconcile detects the
+      provider change and re-embeds.
     {% endif %}
   </p>
 

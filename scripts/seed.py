@@ -2,11 +2,11 @@
 
 Usage:
     python -m scripts.seed
-    python -m scripts.seed --simulate-user agentic
-    python -m scripts.seed --simulate-user data --recommend
+    python -m scripts.seed --simulate-user runner
+    python -m scripts.seed --simulate-user audiophile --recommend
     python -m scripts.seed --reset
 
-`--simulate-user` replays a realistic browsing session so the recommender can
+`--simulate-user` replays a realistic shopping session so the recommender can
 be demonstrated end to end without clicking through the UI by hand.
 """
 
@@ -43,32 +43,63 @@ from app.vector import store  # noqa: E402
 
 SEED_FILE = BASE_DIR / "seed" / "products.json"
 
+# How far back the seeded catalog is spread. Long enough that "newest" means
+# something, short enough that nothing reads as abandoned stock.
+CATALOG_WINDOW_DAYS = 60
+
 DEMO_USERS = [
-    {"email": "admin@learnloop.dev", "password": "admin123", "name": "Ada Admin", "role": "admin"},
-    {"email": "learner@learnloop.dev", "password": "learner123", "name": "Sam Learner", "role": "user"},
+    {"email": "admin@bazario.dev", "password": "admin123", "name": "Ada Admin", "role": "admin"},
+    {"email": "shopper@bazario.dev", "password": "shopper123", "name": "Sam Shopper", "role": "user"},
 ]
 
-# Personas for --simulate-user. Each is a coherent browsing story.
+# Personas for --simulate-user. Each is a coherent shopping story: a set of
+# searches, the categories they browse in, and the keywords that decide which
+# products count as on-persona. `keywords` are matched as lowercase substrings
+# against title + description + tags, so they must appear in the seed catalog.
 PERSONAS = {
-    "agentic": {
-        "searches": ["agentic ai", "langgraph agents", "ai agent tool calling", "agent memory"],
-        "category_focus": ["AI Engineering", "LLM Engineering"],
-        "keywords": ["agent", "agentic", "langgraph", "tool", "orchestrat", "reasoning"],
+    "runner": {
+        "searches": [
+            "cushioned running shoes for long runs",
+            "trail running shoe grip wet rock",
+            "tempo trainer responsive foam",
+            "recovery slides after a hard session",
+        ],
+        "category_focus": ["Footwear", "Apparel"],
+        "keywords": ["running", "trail", "tempo", "cushion", "recovery",
+                     "moisture wicking", "midlayer"],
     },
-    "data": {
-        "searches": ["data pipelines", "spark etl", "airflow orchestration", "warehouse modelling"],
-        "category_focus": ["Data Engineering", "MLOps"],
-        "keywords": ["data", "etl", "pipeline", "spark", "warehouse", "airflow", "stream"],
+    "home-cook": {
+        "searches": [
+            "stainless steel saute pan",
+            "cast iron dutch oven for braising",
+            "sharp high carbon chef knife",
+            "burr coffee grinder for espresso",
+        ],
+        "category_focus": ["Home & Kitchen"],
+        "keywords": ["pan", "cookware", "knife", "cast iron", "braising", "coffee",
+                     "cutting board", "kitchen prep"],
     },
-    "rag": {
-        "searches": ["vector database", "rag chunking", "hybrid search", "reranking"],
-        "category_focus": ["RAG & Search"],
-        "keywords": ["rag", "retrieval", "vector", "embedding", "search", "rerank", "chunk"],
+    "audiophile": {
+        "searches": [
+            "open back headphones wide soundstage",
+            "bookshelf speakers passive stereo",
+            "noise cancelling earbuds for commuting",
+            "headphone amplifier high impedance",
+        ],
+        "category_focus": ["Electronics & Audio"],
+        "keywords": ["headphone", "speaker", "earbuds", "hi-fi", "amplifier",
+                     "soundstage", "monitoring"],
     },
-    "security": {
-        "searches": ["application security", "threat modelling", "pentesting web apps"],
-        "category_focus": ["Security"],
-        "keywords": ["security", "secure", "threat", "pentest", "vulnerab", "auth"],
+    "skincare": {
+        "searches": [
+            "ceramide moisturiser barrier repair",
+            "vitamin c serum for brightening",
+            "gentle cleanser for sensitive skin",
+            "mineral sunscreen spf 50",
+        ],
+        "category_focus": ["Beauty"],
+        "keywords": ["moisturiser", "serum", "cleanser", "sunscreen", "retinal",
+                     "ceramide", "barrier repair"],
     },
 }
 
@@ -100,6 +131,66 @@ async def seed_products(reset: bool = False) -> int:
     return created
 
 
+def _interleave_by_category(products: list[Product]) -> list[Product]:
+    """Round-robin the catalog across its categories, newest first.
+
+    Newest first rather than oldest first because shelves are uneven: the short
+    ones run dry and whatever is left clumps at the end of the ordering. Putting
+    that clump at the *old* end means the front - the part "New arrivals" shows -
+    is one product per category, which is the whole point of interleaving.
+
+    Deterministic: categories keep the order they are first seen in, and within a
+    category later-in-the-file reads as newer, so a re-seed reproduces the same
+    arrangement.
+    """
+    shelves: dict[str, list[Product]] = {}
+    for product in products:
+        shelves.setdefault(product.category, []).append(product)
+
+    ordered: list[Product] = []
+    while any(shelves.values()):
+        for shelf in shelves.values():
+            if shelf:
+                ordered.append(shelf.pop())
+    return ordered
+
+
+def backdate_catalog() -> int:
+    """Spread `created_at` across the seeded catalog.
+
+    The seed writes every product inside a couple of seconds, so `sort=newest`
+    collapses into reverse insert order - and because the seed file is grouped by
+    category, that means the whole "New arrivals" strip comes from whichever
+    category happens to be last in the file. Backdating over a plausible window,
+    interleaved across categories, makes the newest rows a genuine mix.
+
+    Only touches titles that came from the seed file: a product added by hand
+    through the admin form keeps its real creation date.
+    """
+    titles = {row["title"] for row in json.loads(SEED_FILE.read_text(encoding="utf-8"))}
+
+    with session_scope() as db:
+        products = [
+            product
+            for product in db.scalars(select(Product).order_by(Product.id))
+            if product.title in titles
+        ]
+        if not products:
+            return 0
+
+        ordered = _interleave_by_category(products)
+        # `created_at` is a naive column and the rest of the table holds naive UTC
+        # (the model default is aware, and SQLite drops the offset on the way in),
+        # so match that rather than writing local time into one column.
+        newest = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)
+        step = timedelta(days=CATALOG_WINDOW_DAYS) / max(len(ordered) - 1, 1)
+        for index, product in enumerate(ordered):
+            product.created_at = newest - step * index
+        db.commit()
+
+    return len(ordered)
+
+
 def seed_users() -> None:
     with session_scope() as db:
         for spec in DEMO_USERS:
@@ -117,8 +208,8 @@ def seed_users() -> None:
         db.commit()
 
 
-def simulate_user(persona_name: str, email: str = "learner@learnloop.dev") -> int:
-    """Replay a believable browsing session for one persona."""
+def simulate_user(persona_name: str, email: str = "shopper@bazario.dev") -> int:
+    """Replay a believable shopping session for one persona."""
     persona = PERSONAS.get(persona_name)
     if persona is None:
         raise SystemExit(f"Unknown persona {persona_name!r}. Options: {', '.join(PERSONAS)}")
@@ -216,7 +307,7 @@ def simulate_user(persona_name: str, email: str = "learner@learnloop.dev") -> in
 
         print(f"  simulated {len(rows)} events for {email} as '{persona_name}'")
         print(f"  focus categories: {', '.join(persona['category_focus'])}")
-        print(f"  matched {len(targets)} on-persona courses")
+        print(f"  matched {len(targets)} on-persona products")
         return user.id
 
 
@@ -245,11 +336,11 @@ async def run_recommendation(user_id: int) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Seed LearnLoop")
+    parser = argparse.ArgumentParser(description="Seed Bazario Mart")
     parser.add_argument("--reset", action="store_true", help="wipe products/events first")
     parser.add_argument("--simulate-user", dest="persona", help=f"one of: {', '.join(PERSONAS)}")
     parser.add_argument("--recommend", action="store_true", help="run the agent after simulating")
-    parser.add_argument("--email", default="learner@learnloop.dev")
+    parser.add_argument("--email", default="shopper@bazario.dev")
     args = parser.parse_args()
 
     print("Initialising database...")
@@ -261,6 +352,9 @@ def main() -> None:
     print("\nSeeding catalog (dual-write to SQL + vector store)...")
     created = asyncio.run(seed_products(reset=args.reset))
     print(f"  {created} product(s) created")
+
+    dated = backdate_catalog()
+    print(f"  {dated} product(s) dated across the last {CATALOG_WINDOW_DAYS} days")
 
     with session_scope() as db:
         status = catalog.sync_status(db)

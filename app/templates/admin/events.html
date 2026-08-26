@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div data-ll-page="admin-events"></div>
-
 <p class="path"><a href="/admin">Products</a> / Event feed</p>
 
 <h1>Event feed</h1>
@@ -40,7 +38,7 @@
   <table>
     <thead>
       <tr>
-        <th>When</th><th>User</th><th>Type</th><th>Course</th>
+        <th>When</th><th>User</th><th>Type</th><th>Product</th>
         <th>Query</th><th class="num">Dwell</th><th class="num">Scroll</th>
       </tr>
     </thead>
@@ -52,7 +50,7 @@
           <td><code>{{ event.event_type }}</code></td>
           <td>
             {% if event.product %}
-              <a href="/product/{{ event.product.id }}">{{ event.product.title[:38] }}</a>
+              <a href="{{ storefront_url }}/product/{{ event.product.id }}" target="_blank" rel="noopener">{{ event.product.title[:38] }}</a>
             {% else %}&mdash;{% endif %}
           </td>
           <td class="path">{{ event.search_query or '' }}</td>

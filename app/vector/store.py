@@ -2,7 +2,13 @@
 
 Wraps Chroma behind a small interface so the rest of the app never imports
 chromadb directly. Embeddings are supplied by us (app.ai.embeddings), never
-computed by Chroma, which keeps all AI traffic on the Mesh path.
+computed by Chroma, which keeps all AI traffic on the Gemini path.
+
+One Chroma behaviour leaks into the design and is worth stating: a collection's
+dimensionality is pinned by its first insert, and every later write *or query*
+with a differently-sized vector raises. `dimension()` exposes what the
+collection is pinned to so `catalog.reconcile()` can reset before the first bad
+upsert rather than after it.
 """
 
 from __future__ import annotations
@@ -91,11 +97,19 @@ def query(
         )
     except Exception:
         logger.warning("Vector query failed (where=%s); retrying unfiltered", where, exc_info=True)
-        raw = collection.query(
-            query_embeddings=[embedding],
-            n_results=min(n_results, max(collection.count(), 1)),
-            include=["metadatas", "documents", "distances"],
-        )
+        try:
+            raw = collection.query(
+                query_embeddings=[embedding],
+                n_results=min(n_results, max(collection.count(), 1)),
+                include=["metadatas", "documents", "distances"],
+            )
+        except Exception:
+            # Dropping the where-clause does not help every failure - a
+            # dimension mismatch raises on the query itself, whatever the
+            # filter - and an unprotected retry turns that into a 500 on the
+            # dashboard. No candidates is a state the graph already handles.
+            logger.warning("Vector query failed unfiltered as well; no candidates", exc_info=True)
+            return []
 
     ids = (raw.get("ids") or [[]])[0]
     distances = (raw.get("distances") or [[]])[0]
@@ -149,6 +163,31 @@ def count() -> int:
     except Exception:
         logger.warning("Vector count failed", exc_info=True)
         return 0
+
+
+def dimension() -> int | None:
+    """Width the collection is pinned to, or None if it holds no vectors yet.
+
+    Chroma has no API for "what dimension is this collection", because the
+    answer only exists once something has been inserted - so we read one stored
+    embedding. An empty collection returns None, which means "not yet pinned,
+    any width is fine".
+    """
+    try:
+        collection = _get_collection()
+        if collection.count() == 0:
+            return None
+        raw = collection.get(limit=1, include=["embeddings"])
+    except Exception:
+        logger.warning("Could not read vector dimensionality", exc_info=True)
+        return None
+
+    rows = raw.get("embeddings")
+    # Chroma returns embeddings as a numpy array, so `or []` and truthiness
+    # checks on it are both wrong - compare lengths explicitly.
+    if rows is None or len(rows) == 0:
+        return None
+    return int(len(rows[0]))
 
 
 def reset() -> None:

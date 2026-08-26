@@ -93,12 +93,31 @@ def optional_user(request: Request, db: Session = Depends(get_db)) -> User | Non
 
 
 def current_user(user: User | None = Depends(optional_user)) -> User:
+    """For server-rendered pages: bounce an anonymous visitor to the login form.
+
+    The 303 is the response a browser navigation wants. JSON endpoints want
+    `api_user` instead - see the note there.
+    """
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_303_SEE_OTHER,
             detail="login required",
             headers={"Location": "/login"},
         )
+    return user
+
+
+def api_user(user: User | None = Depends(optional_user)) -> User:
+    """For JSON endpoints: answer an anonymous caller with 401.
+
+    A redirect is actively harmful here. `fetch` follows a 303 transparently and
+    without opting in, so the caller gets the login page's HTML under a 200 and
+    the failure surfaces as a JSON parse error somewhere unrelated - or worse,
+    silently, if the response is only checked for `res.ok`. 401 is a status the
+    client can branch on to show its sign-in state.
+    """
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="login required")
     return user
 
 

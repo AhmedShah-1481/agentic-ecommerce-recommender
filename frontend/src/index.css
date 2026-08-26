@@ -1,0 +1,247 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Warm editorial.
+
+   Paper-first rather than screen-first: a bone ground instead of white, ink
+   instead of black, one warm accent used sparingly enough that it still reads
+   as an accent. Fraunces (a variable serif with real optical sizing) carries
+   the display voice, Inter does the work. Card corners are 2px, not 12px -
+   near-square edges are what makes the grid read as print rather than as an
+   app, and the only round things on the site are pills and avatars.
+
+   Every colour a component uses is declared here. Nothing hardcodes a hex
+   except `productVisual.js`, which is generating imagery and owns its own
+   per-category palettes.
+   ========================================================================== */
+@theme {
+  --color-bone: #faf7f2; /* page ground */
+  --color-paper: #fffefb; /* cards, sat on the bone */
+  --color-ink: #16150f; /* text, and the dark bands */
+  --color-ink-soft: #2a2820; /* hairlines and hovers inside ink bands */
+  --color-stone: #6b6558; /* secondary text */
+  --color-stone-light: #9a9384; /* tertiary: meta, placeholders */
+  --color-rule: #e8e0d4; /* borders */
+  --color-rule-dark: #d8cdbc; /* borders that need to be seen */
+  --color-terracotta: #b8502f; /* the accent */
+  --color-terracotta-deep: #963f23; /* its hover */
+  --color-clay: #f2e5dd; /* the accent as a wash */
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* 4px base is Tailwind's own scale, so spacing needs no overrides. Radii do:
+     the defaults are far too round for this direction. */
+  --radius-card: 2px;
+  --radius-pill: 999px;
+
+  --shadow-lift: 0 1px 2px rgb(22 21 15 / 0.04), 0 12px 28px -12px rgb(22 21 15 / 0.14);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-bone);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* The tracker samples scroll depth against document height, so an
+       always-on scrollbar keeps a short page from reporting 100% because the
+       gutter appeared and shifted the measurement. */
+    overflow-y: scroll;
+  }
+
+  /* Fraunces has a `SOFT` and a `WONK` axis. Slightly soft, no wonk: the
+     quirkiness is charming at 96px and illegible at 14px, and this face is
+     used at both. */
+  h1, h2, h3, .font-display {
+    font-variation-settings: "SOFT" 20, "WONK" 0;
+  }
+
+  ::selection {
+    background-color: var(--color-terracotta);
+    color: var(--color-bone);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-terracotta);
+    outline-offset: 3px;
+  }
+
+  /* Number inputs in the quantity stepper and the price filter: the spinners
+     duplicate controls we draw ourselves. */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    appearance: textfield;
+  }
+}
+
+@layer components {
+  /* ---- The eyebrow: small caps, wide tracking, used above every section
+     heading on the site. Defined once because it is the main thing tying the
+     pages together typographically. ---- */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-stone);
+  }
+
+  /* ---- Buttons ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8125rem 1.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-card);
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background-color: var(--color-terracotta);
+    color: var(--color-bone);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-terracotta-deep);
+  }
+  .btn-ink {
+    background-color: var(--color-ink);
+    color: var(--color-bone);
+  }
+  .btn-ink:hover:not(:disabled) {
+    background-color: var(--color-ink-soft);
+  }
+  .btn-outline {
+    border: 1px solid var(--color-ink);
+    color: var(--color-ink);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background-color: var(--color-ink);
+    color: var(--color-bone);
+  }
+  .btn-quiet {
+    border: 1px solid var(--color-rule-dark);
+    color: var(--color-ink);
+    background-color: transparent;
+  }
+  .btn-quiet:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+
+  /* ---- The underline-on-hover link, used in nav and footers ---- */
+  .link-rule {
+    position: relative;
+    color: inherit;
+  }
+  .link-rule::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms ease;
+  }
+  .link-rule:hover::after {
+    transform: scaleX(1);
+  }
+
+  .field {
+    width: 100%;
+    padding: 0.6875rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-rule-dark);
+    border-radius: var(--radius-card);
+  }
+  .field::placeholder {
+    color: var(--color-stone-light);
+  }
+  .field:focus {
+    border-color: var(--color-ink);
+    outline: none;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-rule-dark);
+    color: var(--color-stone);
+    white-space: nowrap;
+  }
+}
+
+@layer utilities {
+  /* Loading skeletons, not spinners: the page's real layout appears
+     immediately and fills in, so nothing jumps when the data lands. */
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-rule);
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.55),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::after {
+      animation: none;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Hides the horizontal scrollbar on the related/featured strips, which are
+     drag-scrollable on touch and paged by buttons on the desktop. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

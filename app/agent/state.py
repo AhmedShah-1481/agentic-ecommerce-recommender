@@ -16,18 +16,18 @@ class AgentState(TypedDict, total=False):
     user_name: str
     profile: dict            # ProfileSnapshot.to_prompt_dict()
     seen_product_ids: list[int]
-    preferred_level: str | None
+    preferred_brand: str | None
     mode: str               # "dashboard" | "digest"
 
     # -- analysis ----------------------------------------------------------
     interests: list[str]
-    inferred_goal: str
-    skill_gaps: list[str]
+    inferred_intent: str
+    unmet_needs: list[str]
     queries: list[str]
     metadata_filter: dict[str, Any]
 
     # -- retrieval ---------------------------------------------------------
-    candidates: list[dict]   # [{id,title,category,level,price,score,...}]
+    candidates: list[dict]   # [{id,title,category,brand,price,score,...}]
     retrieval_quality: float
     refine_attempts: int
     selected: list[dict]

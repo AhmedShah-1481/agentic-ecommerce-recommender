@@ -12,6 +12,10 @@ Design decisions worth knowing:
   * `reconcile()` is the enforcement mechanism: it repairs pending/failed
     rows, deletes orphaned vectors, and re-embeds rows whose stored hash or
     embedding provider no longer matches.
+  * A provider switch can change the vector *width*, not just the values, and
+    Chroma pins a collection's width at first insert. `reconcile()` therefore
+    checks the width before touching anything and drops the collection when it
+    has changed - see `_ensure_dimension()`.
 """
 
 from __future__ import annotations
@@ -20,7 +24,7 @@ import hashlib
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.ai import embeddings
@@ -34,14 +38,34 @@ MUTABLE_FIELDS = (
     "description",
     "category",
     "subcategory",
-    "level",
+    "brand",
     "price",
     "tags",
-    "instructor",
-    "duration_hours",
+    "size",
+    "color",
     "rating",
     "is_published",
 )
+
+
+def brands(db: Session) -> list[str]:
+    """Distinct brands stocked in the published catalog.
+
+    This is the *vocabulary* the agent is allowed to filter on. `brand` replaced
+    a three-value enum as the retrieval facet, so there is no longer a fixed
+    list to validate a model-suggested value against - an invented brand would
+    build a perfectly valid Chroma filter that matches nothing. Cheap enough to
+    run per generation (one DISTINCT over a small table) and deliberately not
+    cached, so a brand added in /admin is filterable immediately.
+    """
+    return list(
+        db.scalars(
+            select(Product.brand)
+            .where(Product.is_published.is_(True), Product.brand != "")
+            .distinct()
+            .order_by(Product.brand)
+        )
+    )
 
 
 def compute_content_hash(product: Product) -> str:
@@ -54,7 +78,9 @@ def _vector_metadata(product: Product, content_hash: str) -> dict:
         "title": product.title,
         "category": product.category,
         "subcategory": product.subcategory,
-        "level": product.level,
+        "brand": product.brand,
+        "size": product.size,
+        "color": product.color,
         "price": float(product.price or 0.0),
         "rating": float(product.rating or 0.0),
         "tags": product.tags or [],
@@ -142,6 +168,42 @@ def delete_product(db: Session, product: Product) -> None:
 # --------------------------------------------------------------------------
 # Sync enforcement
 # --------------------------------------------------------------------------
+def _ensure_dimension(db: Session, report: dict) -> None:
+    """Drop the collection if its vectors are the wrong width for this process.
+
+    Chroma pins a collection's dimensionality at its first insert. Every later
+    upsert *and every query* with a different width raises, so switching
+    embedding provider - or just retuning GEMINI_EMBED_DIMENSIONS - leaves a
+    collection that cannot be repaired one row at a time: `sync_product_vector`
+    would catch the error per product and mark the whole catalog
+    vector_state='failed' forever, while retrieval returned nothing.
+
+    So the width is checked before the repair loop, and a mismatch resets the
+    collection. Everything is re-embedded immediately afterwards by the loop
+    below (every row is missing, so every row is a repair), which is expensive
+    but only on the run that follows the change.
+
+    SQL is the source of truth here, so nothing is lost: the vectors are a
+    derived index. The rows are marked pending rather than trusted, because
+    their stored content_hash no longer corresponds to anything in Chroma.
+    """
+    expected = embeddings.target_dim()
+    actual = store.dimension()
+    if actual is None or actual == expected:
+        return
+
+    logger.warning(
+        "Vector width changed (%s -> %s); resetting the collection and re-embedding",
+        actual, expected,
+    )
+    store.reset()
+    db.execute(
+        update(Product).values(vector_state="pending", vector_synced_at=None, vector_error="")
+    )
+    db.commit()
+    report["dimension_reset"] = {"from": actual, "to": expected}
+
+
 async def reconcile(db: Session, *, force: bool = False) -> dict:
     """Repair drift between SQL and the vector store.
 
@@ -156,6 +218,8 @@ async def reconcile(db: Session, *, force: bool = False) -> dict:
         "still_failing": 0,
     }
 
+    _ensure_dimension(db, report)
+
     products = list(db.scalars(select(Product)))
     report["checked"] = len(products)
 
@@ -167,7 +231,7 @@ async def reconcile(db: Session, *, force: bool = False) -> dict:
 
     stored_meta = store.get_metadata([p.id for p in products]) if products else {}
     # Observed, not assumed: comparing stored metadata against an optimistic
-    # guess would re-embed the whole catalog on every cold start wherever Mesh
+    # guess would re-embed the whole catalog on every cold start wherever Gemini
     # embeddings are unavailable.
     current_provider = await embeddings.resolve_provider()
     report["provider"] = current_provider
@@ -216,7 +280,7 @@ def sync_status(db: Session) -> dict:
 
     # Report the provider recorded in the vectors themselves. This is a sync
     # function so it cannot probe, and printing the optimistic guess would
-    # claim Mesh vectors on a catalog embedded locally.
+    # claim Gemini vectors on a catalog embedded locally.
     stored_meta = store.get_metadata(sorted(sql_ids)) if sql_ids else {}
     vector_providers = sorted(
         {str(m.get("embed_provider", "unknown")) for m in stored_meta.values()}
@@ -236,4 +300,8 @@ def sync_status(db: Session) -> dict:
         "configured_provider": embeddings.configured_provider(),
         "provider_observed": embeddings.provider_observed(),
         "using_fallback": embeddings.using_fallback(),
+        # Chroma pins the collection width at first insert, so a mismatch here
+        # is the one drift that reconcile cannot repair row by row.
+        "vector_dim": store.dimension(),
+        "target_dim": embeddings.target_dim(),
     }

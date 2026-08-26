@@ -25,8 +25,6 @@ from app.templating import templates
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-LEVELS = ["beginner", "intermediate", "advanced"]
-
 
 def _parse_tags(raw: str) -> list[str]:
     return [t.strip() for t in (raw or "").split(",") if t.strip()]
@@ -44,11 +42,14 @@ def _form_to_data(form) -> dict:
         "description": (form.get("description") or "").strip(),
         "category": (form.get("category") or "").strip(),
         "subcategory": (form.get("subcategory") or "").strip(),
-        "level": form.get("level") if form.get("level") in LEVELS else "beginner",
+        # Free text, not a closed list: brand replaced a three-value enum as the
+        # retrieval facet, and an admin must be able to stock a new one. The
+        # agent is what validates against the stocked vocabulary, not this form.
+        "brand": (form.get("brand") or "").strip(),
         "price": num("price"),
         "tags": _parse_tags(form.get("tags") or ""),
-        "instructor": (form.get("instructor") or "").strip(),
-        "duration_hours": num("duration_hours"),
+        "size": (form.get("size") or "").strip() or "One Size",
+        "color": (form.get("color") or "").strip(),
         "rating": max(0.0, min(num("rating"), 5.0)),
         "is_published": form.get("is_published") in ("on", "true", "1"),
     }
@@ -83,11 +84,21 @@ async def admin_home(
 
 
 @router.get("/products/new", response_class=HTMLResponse)
-async def new_product_form(request: Request, admin: User = Depends(require_admin)):
+async def new_product_form(
+    request: Request,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
     return templates.TemplateResponse(
         request,
         "admin/product_form.html",
-        {"title": "New course", "user": admin, "product": None, "levels": LEVELS},
+        {
+            "title": "New product",
+            "user": admin,
+            "product": None,
+            # Datalist suggestions only - the field stays free text.
+            "brands": catalog.brands(db),
+        },
     )
 
 
@@ -114,7 +125,7 @@ async def edit_product_form(
 ):
     product = db.get(Product, product_id)
     if product is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(status_code=404, detail="Product not found")
     return templates.TemplateResponse(
         request,
         "admin/product_form.html",
@@ -122,7 +133,7 @@ async def edit_product_form(
             "title": f"Edit: {product.title}",
             "user": admin,
             "product": product,
-            "levels": LEVELS,
+            "brands": catalog.brands(db),
             "created": bool(created),
         },
     )
@@ -137,7 +148,7 @@ async def update_product(
 ):
     product = db.get(Product, product_id)
     if product is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(status_code=404, detail="Product not found")
     await catalog.update_product(db, product, _form_to_data(await request.form()))
     return RedirectResponse(f"/admin/products/{product_id}", status_code=303)
 
@@ -150,7 +161,7 @@ async def delete_product(
 ):
     product = db.get(Product, product_id)
     if product is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(status_code=404, detail="Product not found")
     catalog.delete_product(db, product)
     return RedirectResponse("/admin", status_code=303)
 

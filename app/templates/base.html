@@ -1,26 +1,25 @@
-{# Base layout. Loads the tracker on every page - failure there must never
-   affect rendering, so it is deferred and self-contained. #}
+{# Base layout for what is still server-rendered: the admin panel, the auth
+   forms, and the inbox. The customer-facing storefront is React on its own
+   origin, so this layout no longer loads a behavioural tracker - tracking an
+   admin's product-CRUD clicks was never the point, and the storefront ships its
+   own tracker. Links to a product or to recommendations are absolute, into
+   `storefront_url`. #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block page_title %}{{ title or 'Courses' }} &middot; {{ app_name }}{% endblock %}</title>
+  <title>{% block page_title %}{{ title or 'Admin' }} &middot; {{ app_name }}{% endblock %}</title>
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
 <header class="site-header">
   <div class="wrap header-inner">
-    <a class="brand" href="/">{{ app_name }}</a>
+    <a class="brand" href="{{ storefront_url }}">{{ app_name }}</a>
     <nav class="nav">
-      <a href="/">Browse</a>
-      {# Presentation-only counter. There is no cart table behind it - the click
-         it reflects is tracked as add_to_cart, which is the point. #}
-      <span class="cart-chip" id="cart-chip" aria-live="polite" hidden>
-        <span class="cart-ico" aria-hidden="true">&#128722;</span><span id="cart-count">0</span>
-      </span>
+      <a href="{{ storefront_url }}">Storefront</a>
       {% if user %}
-        <a href="/dashboard">For you</a>
+        <a href="{{ storefront_url }}/for-you">For you</a>
         <a href="/inbox">Inbox</a>
         {% if user.is_admin %}
           <a href="/admin">Admin</a>
@@ -43,22 +42,10 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <span>{{ app_name }} &mdash; agentic course recommendations</span>
+    <span>{{ app_name }} &mdash; agentic product recommendations</span>
   </div>
 </footer>
 
-<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
-
-{# Tracker config is rendered server-side so the client never guesses identity. #}
-<script>
-  window.LL_CONFIG = {
-    userId: {{ user.id if user else 'null' }},
-    path: {{ request.url.path | tojson }}
-  };
-</script>
-<script src="/static/js/tracker.js" defer></script>
-{# Loaded after the tracker so window.LLTrack exists; purely presentational. #}
-<script src="/static/js/ui.js" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
