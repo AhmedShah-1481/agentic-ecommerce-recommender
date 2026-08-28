@@ -45,7 +45,50 @@ MUTABLE_FIELDS = (
     "color",
     "rating",
     "is_published",
+    "image_url",
+    "image_credit",
+    "image_credit_url",
 )
+
+# Only these schemes reach an `<img src>` or an `href`. Neither `javascript:` nor
+# `data:` executes in an image source, so this is not closing a live hole - but
+# the image URL is the one product field rendered into markup on every surface
+# of the storefront, and the credit URL is the one that becomes a link an actual
+# visitor clicks. Pinning both to http(s) costs nothing and keeps it that way.
+ALLOWED_URL_SCHEMES = ("http://", "https://")
+
+# Long enough for a CDN URL carrying resize and quality parameters, short enough
+# that a paste accident cannot write a novel into the row.
+MAX_URL_CHARS = 1000
+
+
+def safe_url(value: str) -> str:
+    """A plain http(s) URL, or "" if it is not one.
+
+    Returns "" rather than raising because of where this sits: a malformed image
+    URL should drop that product back to its generated panel, not reject an
+    otherwise valid product edit and lose the admin's other changes.
+    """
+    url = " ".join((value or "").split())
+    if not url.lower().startswith(ALLOWED_URL_SCHEMES):
+        return ""
+    return url[:MAX_URL_CHARS]
+
+
+def _normalise(data: dict) -> dict:
+    """Field cleaning applied identically on the create and the update path.
+
+    Both paths funnel through here rather than through the admin form handler,
+    so the seed script and anything programmatic get the same treatment as a
+    human filling in the form.
+    """
+    cleaned = dict(data)
+    for field in ("image_url", "image_credit_url"):
+        if field in cleaned:
+            cleaned[field] = safe_url(cleaned[field])
+    if "image_credit" in cleaned:
+        cleaned["image_credit"] = " ".join(str(cleaned["image_credit"] or "").split())[:160]
+    return cleaned
 
 
 def brands(db: Session) -> list[str]:
@@ -135,6 +178,7 @@ async def sync_product_vector(db: Session, product: Product, *, force: bool = Fa
 
 
 async def create_product(db: Session, data: dict) -> Product:
+    data = _normalise(data)
     product = Product(**{k: v for k, v in data.items() if k in MUTABLE_FIELDS})
     db.add(product)
     db.commit()
@@ -144,6 +188,7 @@ async def create_product(db: Session, data: dict) -> Product:
 
 
 async def update_product(db: Session, product: Product, data: dict) -> Product:
+    data = _normalise(data)
     for field in MUTABLE_FIELDS:
         if field in data:
             setattr(product, field, data[field])

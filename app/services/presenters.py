@@ -47,9 +47,10 @@ def blurb(description: str, limit: int = BLURB_CHARS) -> str:
 def product_json(product: Product, *, full: bool = False) -> dict:
     """One product as the storefront sees it.
 
-    `full=False` is the grid/card shape: everything needed to render a card and
-    its generated visual panel, with prose trimmed to a blurb. `full=True` adds
-    the complete description for the detail page.
+    `full=False` is the grid/card shape: everything needed to render a card -
+    its photograph, or the generated panel that stands in when there isn't one -
+    with prose trimmed to a blurb. `full=True` adds the complete description for
+    the detail page, and the photo credit that page is the only one to display.
 
     `size` and `color` are included in both, even though `embedding_text()`
     deliberately excludes `size` from what gets embedded. Retrieval and display
@@ -68,7 +69,15 @@ def product_json(product: Product, *, full: bool = False) -> dict:
         "size": product.size,
         "color": product.color,
         "blurb": blurb(product.description),
+        # Always present, "" when the product has no photograph, so the React
+        # component tests one shape rather than distinguishing absent from empty.
+        "image_url": product.image_url or "",
     }
     if full:
         data["description"] = product.description or ""
+        # Attribution rides with the detail page only, because that is the only
+        # surface that renders it. A grid of twelve cards would otherwise carry
+        # twenty-four strings nothing displays.
+        data["image_credit"] = product.image_credit or ""
+        data["image_credit_url"] = product.image_credit_url or ""
     return data

@@ -10,7 +10,10 @@
     "size": "M",
     "color": "Fog Grey",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8VC1TaGlydHMlMjBjbG90aGluZ3xlbnwxfDF8fHwxNzg3ODUxODc4fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Fábio  Alves",
+    "image_credit_url": "https://unsplash.com/@barncreative"
   },
   {
     "title": "Brushed Flannel Overshirt",
@@ -23,7 +26,10 @@
     "size": "L",
     "color": "Rust Plaid",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1609709295948-17d77cb2a69b?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U2hpcnRzJTIwY2xvdGhpbmd8ZW58MXwxfHx8MTc4Nzg1MTg2NXww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Carlos Torres",
+    "image_credit_url": "https://unsplash.com/@elcarito"
   },
   {
     "title": "Merino Wool Crewneck Sweater",
@@ -36,7 +42,10 @@
     "size": "M",
     "color": "Oatmeal",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1600369672890-ac00f1907858?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8S25pdHdlYXIlMjBjbG90aGluZ3xlbnwxfDF8fHwxNzg3ODUxODM4fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Jordan Bigelow",
+    "image_credit_url": "https://unsplash.com/@jordanbigs"
   },
   {
     "title": "Cashmere-Blend Scarf",
@@ -49,7 +58,10 @@
     "size": "One Size",
     "color": "Charcoal",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1627123424574-724758594e93?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8bGVhdGhlciUyMGJlbHQlMjB3YWxsZXQlMjBhY2Nlc3Nvcnl8ZW58MXwxfHx8MTc4Nzg1MTgxNnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Ethan Rougon",
+    "image_credit_url": "https://unsplash.com/@ethanethan"
   },
   {
     "title": "Packable Rain Shell",
@@ -62,7 +74,10 @@
     "size": "L",
     "color": "Slate Blue",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1514833312158-4985ace72687?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8T3V0ZXJ3ZWFyJTIwY2xvdGhpbmd8ZW58MXwxfHx8MTc4Nzg1MTg1OHww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Matthew Hamilton",
+    "image_credit_url": "https://unsplash.com/@thatsmrbio"
   },
   {
     "title": "Selvedge Straight-Leg Jeans",
@@ -75,7 +90,10 @@
     "size": "32",
     "color": "Indigo Rinse",
     "rating": 4.3,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1714729382668-7bc3bb261662?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8RGVuaW0lMjBjbG90aGluZ3xlbnwxfDF8fHwxNzg3ODUxODI5fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "TuanAnh Blue",
+    "image_credit_url": "https://unsplash.com/@blueeyeaa"
   },
   {
     "title": "Silk-Touch Camp Collar Shirt",
@@ -88,7 +106,10 @@
     "size": "S",
     "color": "Sea Glass",
     "rating": 4.2,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1642764873654-9eef0467b342?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8U2hpcnRzJTIwY2xvdGhpbmd8ZW58MXwxfHx8MTc4Nzg1MTg2NXww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "farhad chaudhary",
+    "image_credit_url": "https://unsplash.com/@f6655"
   },
   {
     "title": "Grid Fleece Half-Zip",
@@ -101,7 +122,10 @@
     "size": "M",
     "color": "Moss",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1774005521669-028fc9758730?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8ZmxlZWNlJTIwbWlkbGF5ZXIlMjBqYWNrZXR8ZW58MXwxfHx8MTc4Nzg1MTg0N3ww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Elena Golubeva",
+    "image_credit_url": "https://unsplash.com/@elenagolubeva"
   },
   {
     "title": "Organic Cotton Hoodie",
@@ -114,7 +138,10 @@
     "size": "XL",
     "color": "Washed Black",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1499971856191-1a420a42b498?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U3dlYXRzaGlydHMlMjBjbG90aGluZ3xlbnwxfDF8fHwxNzg3ODUxODcyfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Tobias van Schneider",
+    "image_credit_url": "https://unsplash.com/@vanschneider"
   },
   {
     "title": "Wide-Leg Linen Trousers",
@@ -127,7 +154,10 @@
     "size": "30",
     "color": "Sand",
     "rating": 4.1,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1719473442938-c605886ba1c3?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8VHJvdXNlcnMlMjBjbG90aGluZ3xlbnwxfDF8fHwxNzg3ODUxODg0fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "TuanAnh Blue",
+    "image_credit_url": "https://unsplash.com/@blueeyeaa"
   },
   {
     "title": "Insulated Puffer Vest",
@@ -140,7 +170,10 @@
     "size": "L",
     "color": "Deep Olive",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1644504392894-93f191004527?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8T3V0ZXJ3ZWFyJTIwY2xvdGhpbmd8ZW58MXwxfHx8MTc4Nzg1MTg1OHww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Èric Teixidó",
+    "image_credit_url": "https://unsplash.com/@teeixi22"
   },
   {
     "title": "Tempo Pace Running Shoe",
@@ -153,7 +186,10 @@
     "size": "US 10",
     "color": "Volt Citrus",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8UnVubmluZyUyMHNob2VzfGVufDF8MXx8fDE3ODc4NDM5MDN8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "USAMA AKRAM",
+    "image_credit_url": "https://unsplash.com/@usama_1248"
   },
   {
     "title": "Longhaul Cushioned Trainer",
@@ -166,7 +202,10 @@
     "size": "US 9",
     "color": "Storm Grey",
     "rating": 4.8,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8UnVubmluZyUyMHNob2VzfGVufDF8MXx8fDE3ODc4NDM5MDN8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Irene Kredenets",
+    "image_credit_url": "https://unsplash.com/@ikredenets"
   },
   {
     "title": "Trail Grip Off-Road Runner",
@@ -179,7 +218,10 @@
     "size": "US 11",
     "color": "Ember Orange",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1671906531003-8634ef6d597c?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8VHJhaWwlMjBSdW5uaW5nJTIwc2hvZXN8ZW58MXwxfHx8MTc4Nzg0Mzk2M3ww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Venti Views",
+    "image_credit_url": "https://unsplash.com/@ventiviews"
   },
   {
     "title": "Oiled Leather Chelsea Boot",
@@ -192,7 +234,10 @@
     "size": "US 10",
     "color": "Chestnut",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Qm9vdHMlMjBzaG9lc3xlbnwxfDF8fHwxNzg3ODQzODg3fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Zac Wolff",
+    "image_credit_url": "https://unsplash.com/@zacwolff"
   },
   {
     "title": "Canvas Court Sneaker",
@@ -205,7 +250,10 @@
     "size": "US 9",
     "color": "Bone White",
     "rating": 4.3,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U25lYWtlcnMlMjBzaG9lc3xlbnwxfDF8fHwxNzg3ODQzOTU1fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Irene Kredenets",
+    "image_credit_url": "https://unsplash.com/@ikredenets"
   },
   {
     "title": "Recovery Slide",
@@ -218,7 +266,10 @@
     "size": "US 10",
     "color": "Black",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1628375385879-1af64230c2e1?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U2FuZGFscyUyMHNob2VzfGVufDF8MXx8fDE3ODc4NDM5MTV8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "DCL \"650\"",
+    "image_credit_url": "https://unsplash.com/@dclmister"
   },
   {
     "title": "Waxed Hiking Boot",
@@ -231,7 +282,10 @@
     "size": "US 11",
     "color": "Dark Walnut",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1605812860427-4024433a70fd?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8Qm9vdHMlMjBzaG9lc3xlbnwxfDF8fHwxNzg3ODQzODg3fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Maxim Hopman",
+    "image_credit_url": "https://unsplash.com/@nampoh"
   },
   {
     "title": "Featherweight Race Flat",
@@ -244,7 +298,10 @@
     "size": "US 9.5",
     "color": "Cloud White",
     "rating": 4.2,
-    "is_published": false
+    "is_published": false,
+    "image_url": "https://images.unsplash.com/photo-1597892657493-6847b9640bac?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8M3x8UnVubmluZyUyMHNob2VzfGVufDF8MXx8fDE3ODc4NDM5MDN8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Jakob Owens",
+    "image_credit_url": "https://unsplash.com/@jakobowens1"
   },
   {
     "title": "Shearling-Lined Slipper",
@@ -257,7 +314,10 @@
     "size": "US 10",
     "color": "Camel",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1543420629-5350879dd4cd?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8d29vbCUyMHNsaXBwZXJzfGVufDF8MXx8fDE3ODc4NDM5NDF8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Philippe Jausions",
+    "image_credit_url": "https://unsplash.com/@jausions"
   },
   {
     "title": "Tri-Ply Stainless Saute Pan, 11 in",
@@ -270,7 +330,10 @@
     "size": "11 in",
     "color": "Brushed Steel",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1556910585-09baa3a3998e?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Q29va3dhcmUlMjBob21lJTIwa2l0Y2hlbnxlbnwxfDF8fHwxNzg3ODQ2NjQyfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Dane Deaner",
+    "image_credit_url": "https://unsplash.com/@danedeaner"
   },
   {
     "title": "Enamelled Cast Iron Dutch Oven, 5.5 qt",
@@ -283,7 +346,10 @@
     "size": "5.5 qt",
     "color": "Dusk Blue",
     "rating": 4.8,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1592837613828-4b65deb44f15?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8Q29va3dhcmUlMjBob21lJTIwa2l0Y2hlbnxlbnwxfDF8fHwxNzg3ODQ2NjQyfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Loes Klinker",
+    "image_credit_url": "https://unsplash.com/@loeees_"
   },
   {
     "title": "Hand-Forged Chef Knife, 8 in",
@@ -296,7 +362,10 @@
     "size": "8 in",
     "color": "Walnut Handle",
     "rating": 4.9,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1783099780120-9519bd6f7251?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Q3V0bGVyeSUyMGhvbWUlMjBraXRjaGVufGVufDF8MXx8fDE3ODc4NDY2NTV8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Cabri Caldwell",
+    "image_credit_url": "https://unsplash.com/@minimizethenorganize"
   },
   {
     "title": "Conical Burr Coffee Grinder",
@@ -309,7 +378,10 @@
     "size": "One Size",
     "color": "Matte Black",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1537084278693-d597e79f2939?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Q29mZmVlJTIwJTI2JTIwVGVhJTIwaG9tZSUyMGtpdGNoZW58ZW58MXwxfHx8MTc4Nzg0Mzk5Nnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Kristian Ryan Alimon",
+    "image_credit_url": "https://unsplash.com/@ryanalimon"
   },
   {
     "title": "Pour-Over Glass Brewer",
@@ -322,7 +394,10 @@
     "size": "600 ml",
     "color": "Clear",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1607273177147-e7304c4d5d6c?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8Q29mZmVlJTIwJTI2JTIwVGVhJTIwaG9tZSUyMGtpdGNoZW58ZW58MXwxfHx8MTc4Nzg0Mzk5Nnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Nathan Dumlao",
+    "image_credit_url": "https://unsplash.com/@nate_dumlao"
   },
   {
     "title": "Stonewashed Linen Duvet Cover",
@@ -335,7 +410,10 @@
     "size": "Queen",
     "color": "Clay",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1643949915134-73a4c880f7c7?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8QmVkZGluZyUyMGhvbWUlMjBraXRjaGVufGVufDF8MXx8fDE3ODc4NDM5ODZ8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Bilal Mansuri",
+    "image_credit_url": "https://unsplash.com/@itsbilalmn"
   },
   {
     "title": "Waffle Weave Bath Towel Set",
@@ -348,7 +426,10 @@
     "size": "Set of 4",
     "color": "Slate",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1616663717839-2fea42e1a1f6?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8YmF0aCUyMHRvd2VscyUyMGJhdGhyb29tfGVufDF8MXx8fDE3ODc4NDM5NzR8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "the blowup",
+    "image_credit_url": "https://unsplash.com/@theblowup"
   },
   {
     "title": "Handwoven Jute Area Rug",
@@ -361,7 +442,10 @@
     "size": "5x8 ft",
     "color": "Natural",
     "rating": 4.3,
-    "is_published": false
+    "is_published": false,
+    "image_url": "https://images.unsplash.com/photo-1619444978283-cccfb92c357d?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8d29vbCUyMHJ1ZyUyMGZsb29yfGVufDF8MXx8fDE3ODc5MTA2MTR8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Arun Sharma",
+    "image_credit_url": "https://unsplash.com/@arunwithideas"
   },
   {
     "title": "Ribbed Ceramic Table Lamp",
@@ -374,7 +458,10 @@
     "size": "One Size",
     "color": "Chalk",
     "rating": 4.2,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1667312939978-64cf31718a6e?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8dGFibGUlMjBsYW1wJTIwd2FybSUyMGludGVyaW9yfGVufDF8MXx8fDE3ODc4NDY2ODZ8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Karolina Grabowska",
+    "image_credit_url": "https://unsplash.com/@kaboompics"
   },
   {
     "title": "Acacia End-Grain Cutting Board",
@@ -387,7 +474,10 @@
     "size": "18x12 in",
     "color": "Acacia",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1609210885628-4c6a41a8caf7?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Y2hvcHBpbmclMjBib2FyZCUyMGtpdGNoZW4lMjBwcmVwfGVufDF8MXx8fDE3ODc4NDY2NzJ8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Callum Hill",
+    "image_credit_url": "https://unsplash.com/@inkyhills"
   },
   {
     "title": "Cotton Slub Throw Blanket",
@@ -400,7 +490,10 @@
     "size": "50x70 in",
     "color": "Ochre",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1634665810235-011d663754e7?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Zm9sZGVkJTIwbGluZW4lMjB0ZXh0aWxlfGVufDF8MXx8fDE3ODc5MTA2Mzd8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Kateryna Hliznitsova",
+    "image_credit_url": "https://unsplash.com/@kate_gliz"
   },
   {
     "title": "Meridian Over-Ear Headphones",
@@ -413,7 +506,10 @@
     "size": "One Size",
     "color": "Graphite",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8SGVhZHBob25lcyUyMGF1ZGlvJTIwdGVjaHxlbnwxfDF8fHwxNzg3ODUxOTY0fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Luke Peterson",
+    "image_credit_url": "https://unsplash.com/@ldpeterson11"
   },
   {
     "title": "Drift ANC Wireless Earbuds",
@@ -426,7 +522,10 @@
     "size": "One Size",
     "color": "Ivory",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1606741965326-cb990ae01bb2?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8RWFyYnVkcyUyMGF1ZGlvJTIwdGVjaHxlbnwxfDF8fHwxNzg3ODUxOTU4fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "insung yoon",
+    "image_credit_url": "https://unsplash.com/@insungpandora"
   },
   {
     "title": "Alcove Bookshelf Speakers",
@@ -439,7 +538,10 @@
     "size": "Pair",
     "color": "Walnut Veneer",
     "rating": 4.8,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1608538770329-65941f62f9f8?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U3BlYWtlcnMlMjBhdWRpbyUyMHRlY2h8ZW58MXwxfHx8MTc4Nzg1MTk3OHww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "wu yi",
+    "image_credit_url": "https://unsplash.com/@takeshi2"
   },
   {
     "title": "Portable Bluetooth Speaker",
@@ -452,7 +554,10 @@
     "size": "One Size",
     "color": "Sage",
     "rating": 4.3,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1585605109191-03cc36051fcb?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8U3BlYWtlcnMlMjBhdWRpbyUyMHRlY2h8ZW58MXwxfHx8MTc4Nzg1MTk3OHww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Caleb Woods",
+    "image_credit_url": "https://unsplash.com/@caleb_woods"
   },
   {
     "title": "Studio Reference Monitor Headphones",
@@ -465,7 +570,10 @@
     "size": "One Size",
     "color": "Black",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1583394838336-acd977736f90?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8SGVhZHBob25lcyUyMGF1ZGlvJTIwdGVjaHxlbnwxfDF8fHwxNzg3ODUxOTY0fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Kiran CK",
+    "image_credit_url": "https://unsplash.com/@kiranck123"
   },
   {
     "title": "Valve Headphone Amplifier",
@@ -478,7 +586,10 @@
     "size": "One Size",
     "color": "Brushed Brass",
     "rating": 4.7,
-    "is_published": false
+    "is_published": false,
+    "image_url": "https://images.unsplash.com/photo-1736289150235-7dc9b851511a?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8aGlmaSUyMGFtcGxpZmllciUyMHR1cm50YWJsZXxlbnwxfDF8fHwxNzg3ODUxOTQ2fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Jack Dixon",
+    "image_credit_url": "https://unsplash.com/@jackdixon"
   },
   {
     "title": "65W Dual-Port GaN Charger",
@@ -491,7 +602,10 @@
     "size": "One Size",
     "color": "White",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1566554738544-d962991c3fee?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8cGhvbmUlMjBjaGFyZ2VyJTIwcG93ZXIlMjBiYW5rfGVufDF8MXx8fDE3ODc4NTE5NTJ8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "I'M ZION",
+    "image_credit_url": "https://unsplash.com/@ziontech"
   },
   {
     "title": "Magnetic Power Bank, 10,000 mAh",
@@ -504,7 +618,10 @@
     "size": "One Size",
     "color": "Midnight",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1583142485083-291557266e6a?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8cGhvbmUlMjBjaGFyZ2VyJTIwcG93ZXIlMjBiYW5rfGVufDF8MXx8fDE3ODc4NTE5NTJ8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Wengang Zhai",
+    "image_credit_url": "https://unsplash.com/@wgzhai"
   },
   {
     "title": "Adjustable Desk Task Lamp",
@@ -517,7 +634,10 @@
     "size": "One Size",
     "color": "Aluminium",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1621447980929-6638614633c8?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8ZGVzayUyMGxhbXAlMjBsZWR8ZW58MXwxfHx8MTc4Nzg1MTk3Mnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Oscar Ivan Esquivel Arteaga",
+    "image_credit_url": "https://unsplash.com/@oscaresquivel"
   },
   {
     "title": "Bluetooth Item Tracker, 4-Pack",
@@ -530,7 +650,10 @@
     "size": "Pack of 4",
     "color": "Black",
     "rating": 4.2,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1492107376256-4026437926cd?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8dXNiJTIwY2FibGUlMjB0ZWNoJTIwYWNjZXNzb3J5fGVufDF8MXx8fDE3ODc4NTE5NDB8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Adam Birkett",
+    "image_credit_url": "https://unsplash.com/@abrkett"
   },
   {
     "title": "Barrier Repair Ceramide Moisturiser",
@@ -543,7 +666,10 @@
     "size": "50 ml",
     "color": "",
     "rating": 4.8,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8TW9pc3R1cmlzZXJzJTIwc2tpbmNhcmV8ZW58MXwxfHx8MTc4Nzg1MTkxMHww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "michela ampolo",
+    "image_credit_url": "https://unsplash.com/@mikelina5"
   },
   {
     "title": "10% Vitamin C Brightening Serum",
@@ -556,7 +682,10 @@
     "size": "30 ml",
     "color": "",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1599847872487-55351feaf63d?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U2VydW1zJTIwc2tpbmNhcmV8ZW58MXwxfHx8MTc4Nzg1MTkxOHww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Kalos Skincare",
+    "image_credit_url": "https://unsplash.com/@kalosskin"
   },
   {
     "title": "Gentle Amino Acid Cleanser",
@@ -569,7 +698,10 @@
     "size": "150 ml",
     "color": "",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1567721913486-6585f069b332?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Q2xlYW5zZXJzJTIwc2tpbmNhcmV8ZW58MXwxfHx8MTc4Nzg1MTg5Nnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Lumin",
+    "image_credit_url": "https://unsplash.com/@lumin"
   },
   {
     "title": "Mineral Daily Sunscreen SPF 50",
@@ -582,7 +714,10 @@
     "size": "50 ml",
     "color": "",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1657023828553-18c23601c4d7?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8U3VuJTIwQ2FyZSUyMHNraW5jYXJlfGVufDF8MXx8fDE3ODc4NTE5Mjd8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Kate Glotova",
+    "image_credit_url": "https://unsplash.com/@glotova_content"
   },
   {
     "title": "Overnight Retinal Treatment 0.1%",
@@ -595,7 +730,10 @@
     "size": "30 ml",
     "color": "",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8c2tpbmNhcmUlMjBzZXJ1bSUyMGJvdHRsZXxlbnwxfDF8fHwxNzg3ODUxOTM0fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Mathilde Langevin",
+    "image_credit_url": "https://unsplash.com/@mathildelangevin"
   },
   {
     "title": "Bond-Building Repair Hair Mask",
@@ -608,7 +746,10 @@
     "size": "200 ml",
     "color": "",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1734111719430-fe4a3973f8af?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8SGFpciUyMENhcmUlMjBza2luY2FyZXxlbnwxfDF8fHwxNzg3ODUxOTAzfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Jenna Oslin",
+    "image_credit_url": "https://unsplash.com/@jennaoslin"
   },
   {
     "title": "Sulphate-Free Volumising Shampoo",
@@ -621,7 +762,10 @@
     "size": "300 ml",
     "color": "",
     "rating": 4.3,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1560264641-1b5191cc63e2?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8SGFpciUyMENhcmUlMjBza2luY2FyZXxlbnwxfDF8fHwxNzg3ODUxOTAzfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Paul Siewert",
+    "image_credit_url": "https://unsplash.com/@paul_siewert"
   },
   {
     "title": "Neroli and Cedar Body Oil",
@@ -634,7 +778,10 @@
     "size": "100 ml",
     "color": "",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1597931752949-98c74b5b159f?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Ym9keSUyMGxvdGlvbiUyMGJvdHRsZXxlbnwxfDF8fHwxNzg3ODUxODkwfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Sincerely Media",
+    "image_credit_url": "https://unsplash.com/@sincerelymedia"
   },
   {
     "title": "Ridgeline 45L Backpacking Pack",
@@ -647,7 +794,10 @@
     "size": "45 L",
     "color": "Basalt",
     "rating": 4.7,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1586022045497-31fcf76fa6cc?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8aGlraW5nJTIwYmFja3BhY2t8ZW58MXwxfHx8MTc4NzkxMDY1Mnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "lucas Favre",
+    "image_credit_url": "https://unsplash.com/@we_are_rising"
   },
   {
     "title": "Daybreak 22L Daypack",
@@ -660,7 +810,10 @@
     "size": "22 L",
     "color": "Dusty Teal",
     "rating": 4.5,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1622260614153-03223fb72052?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8Mnx8aGlraW5nJTIwYmFja3BhY2t8ZW58MXwxfHx8MTc4NzkxMDY1Mnww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Ali Kazal",
+    "image_credit_url": "https://unsplash.com/@lureofadventure"
   },
   {
     "title": "Three-Season Down Sleeping Bag",
@@ -673,7 +826,10 @@
     "size": "Regular",
     "color": "Burnt Sienna",
     "rating": 4.6,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1558477280-1bfed08ea5db?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8c2xlZXBpbmclMjBiYWclMjBjYW1waW5nfGVufDF8MXx8fDE3ODc5MTA2ODR8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Felix M. Dorn",
+    "image_credit_url": "https://unsplash.com/@allaperto"
   },
   {
     "title": "Two-Person Freestanding Tent",
@@ -686,7 +842,10 @@
     "size": "2-Person",
     "color": "Alpine Yellow",
     "rating": 4.4,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1665200777107-e946c6655f16?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8VGVudHMlMjBvdXRkb29yJTIwY2FtcGluZ3xlbnwxfDF8fHwxNzg3OTEwNzM4fDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Pattanapong Tuamkhum",
+    "image_credit_url": "https://unsplash.com/@k33pcalmncapture"
   },
   {
     "title": "Insulated Vacuum Bottle, 750 ml",
@@ -699,7 +858,10 @@
     "size": "750 ml",
     "color": "Forest",
     "rating": 4.8,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8d2F0ZXIlMjBib3R0bGUlMjBmbGFza3xlbnwxfDF8fHwxNzg3OTEwNzEwfDA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "Joan Tran",
+    "image_credit_url": "https://unsplash.com/@joanofarts"
   },
   {
     "title": "Collapsible Trekking Poles",
@@ -712,7 +874,10 @@
     "size": "Pair",
     "color": "Anodised Grey",
     "rating": 4.3,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1586022045497-31fcf76fa6cc?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8aGlraW5nJTIwdHJla2tpbmclMjBnZWFyfGVufDF8MXx8fDE3ODc5MTA3MDB8MA&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "lucas Favre",
+    "image_credit_url": "https://unsplash.com/@we_are_rising"
   },
   {
     "title": "Packable Camp Chair",
@@ -725,6 +890,9 @@
     "size": "One Size",
     "color": "Charcoal",
     "rating": 4.2,
-    "is_published": true
+    "is_published": true,
+    "image_url": "https://images.unsplash.com/photo-1570512431473-7345c8dbfa4c?ixid=M3wxMDQ1MjQxfDB8MXxzZWFyY2h8MXx8Y2FtcGluZyUyMGNoYWlyJTIwY2FtcHNpdGV8ZW58MXwxfHx8MTc4NzkxMDY2OXww&ixlib=rb-4.1.0&w=900&h=1125&fit=crop&crop=entropy&q=80&fm=jpg",
+    "image_credit": "AMIR SAMOH",
+    "image_credit_url": "https://unsplash.com/@amir_samoh"
   }
 ]

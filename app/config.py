@@ -81,10 +81,21 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_use_tls: bool = True
 
+    # ---- Product imagery ----
+    # Only `scripts/fetch_images.py` reads this, and only when it is run by hand.
+    # The URLs it finds are written into seed/products.json and committed, so a
+    # fresh clone gets photographs with no key of its own - and the test suite
+    # never touches the network for this or anything else.
+    unsplash_access_key: str = ""
+
     # ---- Observability ----
     langsmith_tracing: bool = False
     langsmith_api_key: str = ""
     langsmith_project: str = "bazario-agent"
+
+    @property
+    def unsplash_configured(self) -> bool:
+        return bool(self.unsplash_access_key.strip())
 
     @property
     def gemini_configured(self) -> bool:

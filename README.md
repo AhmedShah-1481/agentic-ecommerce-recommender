@@ -171,7 +171,7 @@ frontend/
         components/  Header Footer ProductCard FilterSidebar Skeletons Empty …
         lib/         tracker.js  api.js  productVisual.js  useResource.js
         state/       AuthContext  CartContext
-tests/    169 tests, no network
+tests/    196 tests, no network
 seed/products.json   56 products   scripts/seed.py
 ```
 
@@ -376,7 +376,7 @@ per-category cap.
 ## Verifying the claims
 
 ```bash
-pytest            # 169 tests, no network required
+pytest            # 196 tests, no network required
 ```
 
 The tests cover the places a subtle bug would be invisible: the reranker's
@@ -423,10 +423,14 @@ By hand:
 
 - **Secrets**: `.env` is gitignored from the first commit; `.env.example`
   documents every key. No credential is needed to read this code.
-- **There are no product photographs**, and the storefront doesn't pretend
-  otherwise: each product panel is a duotone composition generated from the
-  product id, with its hue keyed to the category. It's a deliberate visual
-  choice, and an `image_url` column would drop in without touching anything else.
+- **Product photos are hotlinked from Unsplash**, sourced per category/subcategory
+  by `scripts/fetch_images.py` and committed into `seed/products.json`, so a fresh
+  clone renders them without an API key. Where a product has no `image_url` — or
+  the photo fails to load — the storefront draws a duotone panel generated from
+  the product id with its hue keyed to the category, so every card looks finished
+  either way. Photographer credit is stored alongside the URL because Unsplash's
+  terms require it. Moving to locally-stored files is a tracked follow-up in
+  [NOTES.md](NOTES.md) before this is deployed publicly.
 - SQLite runs in WAL mode so the event writer never blocks page reads. The
   schema is plain SQLAlchemy — `DATABASE_URL` can point at PostgreSQL unchanged.
 - APScheduler in-process is right for a single-node hackathon build. For a

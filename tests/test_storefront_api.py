@@ -234,17 +234,25 @@ def test_no_match_is_an_empty_page_not_a_404(client):
 
 
 def test_the_card_shape_carries_what_a_card_draws(client):
-    """Grid cards render a generated visual panel keyed on category and brand and
-    show size/colour, so those have to be in the list payload - not just on the
-    detail response."""
+    """Grid cards show size/colour and either a photograph or a generated panel
+    keyed on category and brand, so all of that has to be in the list payload -
+    not just on the detail response.
+
+    `image_url` is always present, empty when the product has no photograph, so
+    the client tests one shape rather than distinguishing absent from empty. The
+    photographer credit is deliberately *not* here: it renders only on the detail
+    page, and a grid of twelve cards would otherwise carry twenty-four strings
+    nothing displays.
+    """
     card = client.get("/api/catalog?q=merino").json()["products"][0]
 
     assert set(card) == {
         "id", "title", "category", "subcategory", "brand",
-        "price", "rating", "tags", "size", "color", "blurb",
+        "price", "rating", "tags", "size", "color", "blurb", "image_url",
     }
     # Trimmed prose on a card, never the full description.
     assert "description" not in card
+    assert "image_credit" not in card
 
 
 # --------------------------------------------------------------------------

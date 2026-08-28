@@ -20,10 +20,10 @@ import { DetailSkeleton, StripSkeleton } from "../components/Skeletons";
  * every navigation, so the page cannot forget to be instrumented and cannot
  * double-count when React re-mounts it.
  *
- * The "gallery" is four compositions of the same generated panel rather than
- * four photographs. It is not pretending to be a photo carousel: the caption
- * says what it is, and the thumbnails give the layout the rhythm a real gallery
- * has without inventing product imagery the catalog does not ship.
+ * The gallery has two shapes. A photographed product shows its one frame and a
+ * credit line. A product without a photo shows four compositions of the same
+ * generated panel: not pretending to be a photo carousel - the caption says what
+ * it is - but giving the layout the rhythm a real gallery has.
  */
 
 const NOTES = [
@@ -31,6 +31,55 @@ const NOTES = [
   { Icon: RotateCcw, text: "30 days to change your mind" },
   { Icon: ShieldCheck, text: "Two-year maker's warranty" },
 ];
+
+/**
+ * Photographer attribution.
+ *
+ * Not optional polish. Unsplash's API terms require the photographer be named
+ * with a link back, and the same obligation applies to the Flickr CC images an
+ * admin might paste in, so this renders wherever a photo does. The "on Unsplash"
+ * half is keyed off the profile host rather than hardcoded, so a photo sourced
+ * elsewhere is credited without claiming the wrong provenance.
+ */
+function PhotoCredit({ name, profileUrl }) {
+  if (!name) return null;
+
+  const onUnsplash = /(^|\.)unsplash\.com/i.test(
+    (() => {
+      try {
+        return new URL(profileUrl).hostname;
+      } catch {
+        return "";
+      }
+    })()
+  );
+
+  return (
+    <p className="mt-3 text-[0.6875rem] leading-relaxed text-stone-light">
+      Photograph by{" "}
+      {profileUrl ? (
+        <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="link-rule">
+          {name}
+        </a>
+      ) : (
+        name
+      )}
+      {onUnsplash && (
+        <>
+          {" on "}
+          <a
+            href="https://unsplash.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-rule"
+          >
+            Unsplash
+          </a>
+        </>
+      )}
+    </p>
+  );
+}
 
 function Spec({ label, children }) {
   if (!children) return null;
@@ -103,32 +152,46 @@ export default function ProductDetail() {
             className="aspect-4/5 w-full rounded-card"
             glyphClass="w-[22%] h-[22%]"
           />
-          <div className="mt-3 grid grid-cols-4 gap-3">
-            {VARIANTS.map((variant, index) => (
-              <button
-                key={variant}
-                type="button"
-                onClick={() => setView(index)}
-                aria-label={`View ${index + 1} of ${VARIANTS.length}`}
-                aria-pressed={index === view}
-                className={`rounded-card transition-opacity ${
-                  index === view ? "ring-1 ring-ink" : "opacity-60 hover:opacity-100"
-                }`}
-              >
-                <ProductVisual
-                  product={product}
-                  offset={index}
-                  chrome={false}
-                  className="aspect-square w-full rounded-card"
-                  glyphClass="w-[30%] h-[30%]"
-                />
-              </button>
-            ))}
-          </div>
-          <p className="mt-3 text-[0.6875rem] leading-relaxed text-stone-light">
-            Panels are generated from the product's category and id — this demo catalog ships
-            without photography.
-          </p>
+
+          {/* The thumbnail strip is four compositions of one generated panel. A
+              photographed product has exactly one frame, so showing four
+              identical crops of it would be worse than showing none. */}
+          {!product.image_url && (
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              {VARIANTS.map((variant, index) => (
+                <button
+                  key={variant}
+                  type="button"
+                  onClick={() => setView(index)}
+                  aria-label={`View ${index + 1} of ${VARIANTS.length}`}
+                  aria-pressed={index === view}
+                  className={`rounded-card transition-opacity ${
+                    index === view ? "ring-1 ring-ink" : "opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <ProductVisual
+                    product={product}
+                    offset={index}
+                    chrome={false}
+                    className="aspect-square w-full rounded-card"
+                    glyphClass="w-[30%] h-[30%]"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {product.image_url ? (
+            <PhotoCredit
+              name={product.image_credit}
+              profileUrl={product.image_credit_url}
+            />
+          ) : (
+            <p className="mt-3 text-[0.6875rem] leading-relaxed text-stone-light">
+              Panels are generated from the product's category and id — this product ships
+              without photography.
+            </p>
+          )}
         </div>
 
         {/* ---------------- Detail ---------------- */}

@@ -96,6 +96,35 @@
     </div>
 
     <div class="field">
+      <label for="image_url">Image URL</label>
+      {# Optional. Empty is the normal case: the storefront draws a generated
+         panel from the category and id when there is no photograph, so a new
+         product looks deliberate rather than broken without one. #}
+      <input type="url" id="image_url" name="image_url"
+             placeholder="https://… (leave blank for a generated panel)"
+             value="{{ product.image_url if product else '' }}">
+      <small class="path">
+        Must be http(s); anything else is discarded and falls back to the panel.
+        Changing it does not re-embed the product.
+      </small>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="image_credit">Photographer</label>
+        <input type="text" id="image_credit" name="image_credit"
+               value="{{ product.image_credit if product else '' }}">
+      </div>
+      <div class="field">
+        <label for="image_credit_url">Photographer link</label>
+        {# Required by the licence when there is an image, not optional polish -
+           see the image columns in models.py. #}
+        <input type="url" id="image_credit_url" name="image_credit_url"
+               value="{{ product.image_credit_url if product else '' }}">
+      </div>
+    </div>
+
+    <div class="field">
       <label>
         <input type="checkbox" name="is_published" style="width:auto"
                {% if not product or product.is_published %}checked{% endif %}>

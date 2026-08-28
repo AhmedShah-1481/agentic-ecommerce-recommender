@@ -52,6 +52,13 @@ def _form_to_data(form) -> dict:
         "color": (form.get("color") or "").strip(),
         "rating": max(0.0, min(num("rating"), 5.0)),
         "is_published": form.get("is_published") in ("on", "true", "1"),
+        # Left blank on almost every admin-created product, and that is the
+        # designed path rather than a gap: no URL means the storefront draws its
+        # generated panel. `catalog._normalise` is what rejects a non-http(s)
+        # value, so the same rule applies to the seed and to this form.
+        "image_url": (form.get("image_url") or "").strip(),
+        "image_credit": (form.get("image_credit") or "").strip(),
+        "image_credit_url": (form.get("image_credit_url") or "").strip(),
     }
 
 

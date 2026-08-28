@@ -5,7 +5,7 @@ project *is*; this file is about where it stands, what's still open, and why
 things were built the way they were.
 
 **Status: the platform is complete — all requirements plus all four bonuses,
-169 tests passing.** It began life as *LearnLoop*, a course recommender, and was
+196 tests passing.** It began life as *LearnLoop*, a course recommender, and was
 converted to a general e-commerce store in three reviewable steps, all now done:
 
 | Step | What | State |
@@ -78,14 +78,19 @@ Every item below was checked by running it, not by reading the code.
   (`#B8502F`), Fraunces for display and Inter for text, 2px card radii. Every
   colour a component uses is a token there — nothing hardcodes a hex except
   `productVisual.js`, which generates imagery and owns its own palettes.
-- **There are no product photographs and the app does not pretend otherwise.**
+- **Product imagery is a photograph with a generated panel behind it.** All 56
+  seeded products carry an `image_url` hotlinked from Unsplash, sourced per
+  (category, subcategory) by [scripts/fetch_images.py](scripts/fetch_images.py)
+  and committed into [seed/products.json](seed/products.json) — so a fresh clone
+  renders photographs with no API key of its own.
   [ProductVisual.jsx](frontend/src/components/ProductVisual.jsx) draws a
-  deterministic duotone panel per product — hue from the category, one of four
-  compositions and a glyph from the id — so the grid has real visual rhythm with
-  no image host, no placeholder-photo service and no schema change. Six shelves
-  read as six colours, which is deliberate: on a related-products strip all four
-  items share a hue, and the glyph plus the subcategory label carry the
-  difference.
+  deterministic duotone panel — hue from the category, one of four compositions
+  and a glyph from the id — whenever `image_url` is empty *or the photo fails to
+  load*, which makes it a real fallback rather than a placeholder: an
+  admin-created product and a dead CDN both land on a finished-looking card.
+  Attribution is not optional — Unsplash's terms require the photographer be
+  named with a link back, which is why `image_credit` and `image_credit_url` are
+  columns beside the URL rather than something derived from it.
 - **Every state is drawn, not just the happy path**: loading *skeletons* rather
   than spinners (sized to the API's `PAGE_SIZE` so the layout does not jump),
   empty cart, empty search with a way out, a friendly cold start on *For you* for
@@ -303,7 +308,7 @@ scoring, multiplicative reranking, per-category cap (`MAX_PER_CATEGORY = 2`),
 below-band filler capped at `MIN_SLATE = 2` so a weak pool doesn't pad the slate
 with irrelevance.
 
-### Tests — 169 passing, no network required
+### Tests — 196 passing, no network required
 ```
 tests/test_storefront_api.py          32  catalog filters/sort/paging, facets, 404 on unpublished
 tests/test_gemini_provider.py         27  message translation, schemas, thinking, width
@@ -450,7 +455,7 @@ doesn't change.
   serves it — dev runs Vite, and `STOREFRONT_URL` is what emails and the API index
   point at. Putting `dist/` behind the same host as the API is the deployment that
   makes the cookie question above disappear.
-- **Steps 1–3 are on disk but uncommitted.** 169 tests pass and the seed →
+- **Steps 1–3 are on disk but uncommitted.** 196 tests pass and the seed →
   simulate → recommend walkthrough was run end to end on two personas.
 - **`data/app.db` was recreated, not migrated.** `init_db()` uses
   `create_all()`, which cannot add the `brand` / `size` / `color` columns to an
@@ -583,7 +588,7 @@ It matches on seed-file titles only, so a product an admin creates through
 ### Tests
 
 ```bash
-venv/Scripts/python -m pytest tests/ -q      # 169 passed, ~20s, no network
+venv/Scripts/python -m pytest tests/ -q      # 196 passed, ~20s, no network
 ```
 
 ### Demoing the scheduler without waiting for 16:00 UTC
@@ -630,13 +635,37 @@ digest_date)` uniqueness doing its job. The digest appears in `outbox/` and at
 - **A fresh clone also needs `npm install` in `frontend/`.** `node_modules/` is
   gitignored, and `npm run dev` on a clean checkout fails with a missing-vite
   error that reads like a broken project rather than a missing step.
-- **There are no product photographs, and the storefront doesn't pretend
-  otherwise.** Every product panel is a generated duotone composition, derived
-  deterministically from the product id with its hue keyed to the category. It is
-  a considered visual choice rather than a placeholder — but it does mean a
-  related-products strip shows four panels in one hue, which looks like a
-  rendering bug until you know it's the category showing through. A real image
-  column would drop in without a schema change; nothing keys off the panels.
+- **⚠ FOLLOW-UP BEFORE THIS GOES ANYWHERE PUBLIC: product images are hotlinked,
+  not stored.** All 56 products point at `images.unsplash.com`. That is what
+  Unsplash's API terms require while using their API — the photo has to be served
+  from their CDN so their view counting works — but it means our product imagery
+  depends on someone else's uptime, rate limits and continued willingness to serve
+  us, and every shopper's browser makes a request to a third party on every page.
+  The switch to locally-stored files is *deliberately deferred*, not forgotten:
+  hotlinking was chosen to validate the feature quickly.
+
+  What the switch involves, so it can be picked up cold:
+  1. Download each `image_url` to `app/static/img/products/<id>.jpg` (the URLs
+     already carry `w=900&h=1125&fit=crop`, so the served bytes are the right
+     size — no re-processing needed).
+  2. Rewrite `image_url` to the local path. Nothing else changes:
+     `ProductVisual` renders whatever string it is given, and the column is
+     outside `embedding_text()` so no product re-embeds.
+  3. **Keep `image_credit` / `image_credit_url` rendering.** The attribution
+     obligation follows the file when it is self-hosted — it does not end when the
+     hotlink does. This is the part most likely to be dropped by accident, which
+     is why the credit lives in its own columns rather than being inferred from
+     the URL's host.
+  4. Re-check Unsplash's current licence terms for self-hosted use before
+     shipping; the API terms and the photo licence are different documents.
+  5. `resolves()` in `scripts/fetch_images.py` becomes a file-existence check.
+- **`scripts/fetch_images.py` costs more API requests than it looks like.** One
+  search per (category, subcategory) pair is 44, but Unsplash also requires a
+  download registration per *photo used*, which is another 56 — ~100 requests
+  against a demo tier of 50/hour. A cold run therefore hits the limit around
+  halfway; it stops cleanly and writes what it has, and `--missing` finishes the
+  job on the next hour without re-spending budget on pairs already done. This is
+  why the catalog was filled over more than one run.
 - **APScheduler is in-process.** Correct for a single-node hackathon build. With
   multiple uvicorn workers each would start its own scheduler; the `digest_log`
   claim makes duplicate *emails* impossible, but the README's note about Celery

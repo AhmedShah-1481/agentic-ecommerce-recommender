@@ -1,21 +1,32 @@
+import { useEffect, useState } from "react";
 import { productVisual } from "../lib/productVisual";
 
 /**
- * The generated panel that stands in for a product photograph.
+ * A product's photograph, or the generated panel that stands in for one.
  *
- * Built from divs rather than one SVG so the composition holds its proportions
- * in any aspect ratio the layout asks for - a 4:5 card, a square hero, a 64px
- * cart thumbnail - without a viewBox distorting the circles.
+ * Photographs are currently hotlinked from Unsplash, which is the reason for the
+ * `onError` path rather than defensive habit: these URLs are not ours, and a
+ * photo that is pulled at the source has to degrade to the panel instead of
+ * leaving a hole in the grid. The panel is not a placeholder in the loading
+ * sense - it is a real, finished rendering of a product with no photo, which is
+ * what every admin-created product starts as.
+ *
+ * The panel itself is built from divs rather than one SVG so the composition
+ * holds its proportions in any aspect ratio the layout asks for - a 4:5 card, a
+ * square hero, a 64px cart thumbnail - without a viewBox distorting the circles.
  *
  * `offset` shifts the composition but not the palette, which is how the product
- * page gets a four-panel gallery of a single product.
+ * page gets a four-panel gallery of a single product. It does nothing to a
+ * photograph: there is only one, and the detail page hides the thumbnail strip
+ * accordingly rather than showing four identical frames.
  *
  * `variant` overrides the composition the seed picked. Only the hero uses it:
  * that one panel is 500px tall and is the first thing anyone sees, so it is worth
  * art-directing rather than leaving to a hash of the product id.
  *
  * `chrome` draws the brand wordmark and the subcategory label. Off for anything
- * small: at 64px they are unreadable smudges rather than typography.
+ * small: at 64px they are unreadable smudges rather than typography. It is not
+ * applied to photographs at all - the wordmark over a photo reads as a watermark.
  */
 export default function ProductVisual({
   product,
@@ -25,6 +36,35 @@ export default function ProductVisual({
   className = "",
   glyphClass = "w-[26%] h-[26%]",
 }) {
+  const photo = product?.image_url || "";
+  const [broken, setBroken] = useState(false);
+
+  // Resetting on change matters as much as the onError does. One mounted card
+  // renders a different product as you page through a grid, and a `broken` flag
+  // left set from the previous occupant would hide a perfectly good photograph.
+  useEffect(() => {
+    setBroken(false);
+  }, [photo]);
+
+  if (photo && !broken) {
+    return (
+      <div className={`relative overflow-hidden bg-rule ${className}`}>
+        <img
+          src={photo}
+          // Empty alt on purpose. Every surface that renders this names the
+          // product in adjacent text - the card's heading, the detail page's h1,
+          // the cart line's title - so describing it here would make a screen
+          // reader announce the same product twice.
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={() => setBroken(true)}
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+
   const { gradient, ink, Icon, variant: seeded, wordmark, label } = productVisual(product, offset);
   const variant = variantOverride || seeded;
 

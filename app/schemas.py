@@ -62,6 +62,12 @@ class ProductIn(BaseModel):
     color: str = Field(default="", max_length=30)
     rating: float = 0.0
     is_published: bool = True
+    # Bounded here, scheme-checked in `catalog.safe_url`. The split is the same
+    # one the auth schemas make: this caps what can reach the column, and the
+    # service layer owns the one rule both the form and the seed must obey.
+    image_url: str = Field(default="", max_length=1000)
+    image_credit: str = Field(default="", max_length=160)
+    image_credit_url: str = Field(default="", max_length=1000)
 
 
 # --------------------------------------------------------------------------

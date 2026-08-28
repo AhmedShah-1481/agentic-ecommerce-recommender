@@ -1,12 +1,14 @@
 /**
- * Generated product imagery.
+ * Generated product imagery - the fallback when a product has no photograph.
  *
- * The catalog has no image column and the 56 seeded products carry no photo, so
- * the storefront draws one. Not a grey placeholder box and not a random
- * gradient: a deterministic duotone panel derived from the product itself, so
- * that the same product looks identical everywhere it appears - grid, detail
- * page, related strip, cart line, recommendation card - and so that a category
- * reads as a family at a glance down a column of cards.
+ * Products carry an optional `image_url`. When one is set, `ProductVisual`
+ * renders the photo and none of this runs. When it is empty - every
+ * admin-created product, and any product whose hotlinked photo has died at the
+ * source - the storefront draws one instead. Not a grey placeholder box and not
+ * a random gradient: a deterministic duotone panel derived from the product
+ * itself, so that the same product looks identical everywhere it appears - grid,
+ * detail page, related strip, cart line, recommendation card - and so that a
+ * category reads as a family at a glance down a column of cards.
  *
  * What is derived from what:
  *

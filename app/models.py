@@ -86,6 +86,22 @@ class Product(Base):
     rating: Mapped[float] = mapped_column(Float, default=0.0)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    # Product photography. Currently hotlinked from the source it was fetched
+    # from; see the follow-up in NOTES.md about moving to local files.
+    #
+    # Deliberately outside `embedding_text()`: swapping a photograph is not a
+    # semantic edit, so `content_hash` does not move and no re-embedding runs -
+    # the same reasoning that keeps `size` out of it.
+    #
+    # The credit columns are not decoration. Unsplash's API terms require the
+    # photographer be named with a link back, and that obligation follows the
+    # file when it is downloaded and self-hosted, so it is stored beside the URL
+    # rather than derived from it. An empty `image_url` is the normal case for an
+    # admin-created product and means the storefront draws its generated panel.
+    image_url: Mapped[str] = mapped_column(Text, default="")
+    image_credit: Mapped[str] = mapped_column(String(160), default="")
+    image_credit_url: Mapped[str] = mapped_column(Text, default="")
+
     content_hash: Mapped[str] = mapped_column(String(64), default="")
     vector_state: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     vector_error: Mapped[str] = mapped_column(Text, default="")
@@ -99,7 +115,9 @@ class Product(Base):
 
         `size` is deliberately excluded: "M" contributes nothing to semantic
         retrieval, so a size correction stays as cheap as a price edit. `color`
-        is included because shoppers do search on it.
+        is included because shoppers do search on it. The image columns are
+        excluded for the same reason as `size`, which is what makes re-shooting
+        a product free rather than a re-embed.
         """
         tags = ", ".join(self.tags or [])
         return (
